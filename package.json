@@ -1,0 +1,25 @@
+{
+  "name": "elections",
+  "version": "1.0.0",
+  "description": "Netvote election contracts",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/netvote/elections.git"
+  },
+  "author": "steven@netvote.io",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/netvote/elections/issues"
+  },
+  "homepage": "https://github.com/netvote/elections#readme",
+  "dependencies": {
+    "zeppelin-solidity": "^1.3.0"
+  }
+}
