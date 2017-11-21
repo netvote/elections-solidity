@@ -70,15 +70,16 @@ contract Ballot is ElectionPhaseable {
     // voters for pool
     mapping (address => address[]) poolVoters;
 
-    mapping (address => PoolGroup) poolGroups;
+    // groups for a pool
+    mapping (address => mapping(string => bool)) poolGroupMapping;
+
+    // result groups for ballot
+    mapping (string => bool) groupExists;
+    mapping (string => uint256) groupIndex;
+    string[] groups;
 
     address[] internal poolList;
     mapping (address => uint256) poolListIndex;
-
-    struct PoolGroup {
-        mapping(string => bool) groupExists;
-        string[] groups;
-    }
 
     function Ballot(address e, address ownerAddress) public {
         election = Election(e);
@@ -99,7 +100,7 @@ contract Ballot is ElectionPhaseable {
         uint256 count = 0;
         for (uint256 i =0; i<poolList.length; i++) {
             if (poolExists[poolList[i]]) {
-                if(poolGroups[poolList[i]].groupExists[group]){
+                if(poolGroupMapping[poolList[i]][group]){
                     res[i] = poolList[i];
                     count++;
                 }
@@ -142,13 +143,46 @@ contract Ballot is ElectionPhaseable {
         return poolVoters[pool][i];
     }
 
-    function poolGroupCount(address pool) constant public returns (uint256) {
-        return poolGroups[pool].groups.length;
+    function getPrunedGroups() constant internal returns (string[]) {
+        string[] memory res = new string[](groups.length);
+        uint256 count = 0;
+        for (uint256 i =0; i<groups.length; i++) {
+            if (groupExists[groups[i]]) {
+                res[i] = groups[i];
+                count++;
+            }
+        }
+        string[] memory pruned = new string[](count);
+        uint256 index = 0;
+        for (uint256 j =0; j<res.length; j++) {
+            if (bytes(res[j]).length > 0) {
+                pruned[index] = res[j];
+                index++;
+            }
+        }
+        return pruned;
     }
 
-    function getPoolGroup(address pool, uint256 groupIndex) constant public returns (string) {
-        require(poolExists[pool]);
-        return poolGroups[pool].groups[groupIndex];
+    function getGroupCount() constant public returns (uint256) {
+        return getPrunedGroups().length;
+    }
+
+    function getGroup(uint256 index) constant public returns (string) {
+        return getPrunedGroups()[index];
+    }
+
+    function removeGroup(string group) public building admin {
+        require(groupExists[group]);
+        delete groupExists[group];
+        delete groups[groupIndex[group]];
+        delete groupIndex[group];
+    }
+
+    function addGroup(string group) public building admin {
+        require(!groupExists[group]);
+        groupExists[group] = true;
+        groups.push(group);
+        groupIndex[group] = groups.length - 1;
     }
 
     function addPool(address pool) public building admin {
@@ -164,11 +198,11 @@ contract Ballot is ElectionPhaseable {
         delete poolListIndex[pool];
     }
 
-    function addPoolGroup(address pool, string group) public building admin {
+    function addPoolToGroup(address pool, string group) public building admin {
+        require(groupExists[group]);
         require(poolExists[pool]);
-        require(!poolGroups[pool].groupExists[group]);
-        poolGroups[pool].groups.push(group);
-        poolGroups[pool].groupExists[group] = true;
+        require(!poolGroupMapping[pool][group]);
+        poolGroupMapping[pool][group] = true;
     }
 
     function castVote(address voter) public voting validPool {
@@ -191,7 +225,7 @@ contract RegistrationPool is ElectionPhaseable {
     }
 
     function getVote(address voter) public constant returns (string) {
-        require(isClosed() || msg.sender == voter || ballotExists[msg.sender]);
+        require(isClosed() || msg.sender == voter);
         return votes[voter];
     }
 

@@ -18,121 +18,311 @@ let getVotesByGroup = async (ballot, group) => {
     return votes;
 };
 
-contract('Election Admin Actions', function (accounts) {
-    let election;
-    let ballot1;
-    let ballot2;
-    let electionAdmin = accounts[1];
-    let ballot1Admin = accounts[2];
-    let ballot2Admin = accounts[3];
-    let poolAdmin = accounts[4];
-    let voter1 = accounts[5];
-    let voter2 = accounts[6];
-    let pool1;
-    let pool2;
+let setupConfig = async(config) => {
+    config.contract = await Election.new({from: config.admin });
 
-    /*******
-     *
-     *  Scenario:
-     *  1 Election
-     *  2 Ballots
-     *  2 Pools (1 Voter each)
-     *
-     *  Both Pools point to Both Ballots
-     *
-     *  Results Groups:
-     *  Pool 1 = D5, NY
-     *  Pool 2 = D6, NY
-     */
+    // SETUP BALLOTS
+    for (let name in config.ballots) {
+        if (config.ballots.hasOwnProperty(name)) {
+            let ballotConfig = config.ballots[name];
+            let admin = ballotConfig.admin;
+            let ballot = await Ballot.new(config.contract.address, admin, {from: config.admin});
+            await ballot.setMetadataLocation(ballotConfig.metadata, {from: admin});
+            for(let i=0; i<ballotConfig.groups.length; i++){
+                await ballot.addGroup(ballotConfig.groups[i], {from: admin});
+            }
+            config.ballots[name].contract = ballot;
+            await config.contract.addBallot(ballot.address, {from: config.admin});
+        }
+    }
 
-    beforeEach(async () => {
-        election = await Election.new({from: electionAdmin});
+    // SETUP POOLS
+    for (let name in config.pools) {
+        if (config.pools.hasOwnProperty(name)) {
+            let poolConfig = config.pools[name];
+            let admin = poolConfig.admin;
+            let pool = await RegistrationPool.new({from: admin});
+            config.pools[name].contract = pool;
 
-        //ballot 1: create and add ballot to election
-        ballot1 = await Ballot.new(election.address, ballot1Admin, {from: ballot1Admin});
-        await ballot1.setMetadataLocation("ipfsReference1", {from: ballot1Admin});
-        await election.addBallot(ballot1.address, {from: electionAdmin});
+            for(let i=0; i<poolConfig.ballots.length; i++) {
+                let ballot = config.ballots[poolConfig.ballots[i]];
+                await pool.addBallot(ballot.contract.address, {from: admin});
+                await ballot.contract.addPool(pool.address, {from: ballot.admin});
+                for(let g=0; g<poolConfig.groups.length; g++) {
+                    let group = poolConfig.groups[g];
+                    for(let j=0; j<ballot.groups.length; j++){
+                        if(ballot.groups[j] === group) {
+                            await ballot.contract.addPoolToGroup(pool.address, group, {from: ballot.admin});
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
 
-        //ballot 2: create and add ballot to election
-        ballot2 = await Ballot.new(election.address, ballot2Admin, {from: ballot2Admin});
-        await ballot2.setMetadataLocation("ipfsReference2", {from: ballot2Admin});
-        await election.addBallot(ballot2.address, {from: electionAdmin});
+    //ACTIVATE
+    config.contract.activate({from: config.admin});
 
-        //pool1: create pool and map existing ballots
-        pool1 = await RegistrationPool.new({from: poolAdmin});
-        await pool1.addBallot(ballot1.address, {from: poolAdmin});
-        await pool1.addBallot(ballot2.address, {from: poolAdmin});
+    for (let name in config.ballots) {
+        if (config.ballots.hasOwnProperty(name)) {
+            let ballot = config.ballots[name];
+            await ballot.contract.activate({from: ballot.admin});
+        }
+    }
 
-        //pool2: create pool and map existing ballots
-        pool2 = await RegistrationPool.new({from: poolAdmin});
-        await pool2.addBallot(ballot1.address, {from: poolAdmin});
-        await pool2.addBallot(ballot2.address, {from: poolAdmin});
+    for (let name in config.pools) {
+        if (config.pools.hasOwnProperty(name)) {
+            let pool = config.pools[name];
+            await pool.contract.activate({from: pool.admin});
+        }
+    }
 
-        //ballot1: specify which pools are allowed, set metadata
-        await ballot1.addPool(pool1.address, {from: ballot1Admin});
-        await ballot1.addPoolGroup(pool1.address, "D5", {from: ballot1Admin});
-        await ballot1.addPoolGroup(pool1.address, "NY", {from: ballot1Admin});
-        await ballot1.addPool(pool2.address, {from: ballot1Admin});
-        await ballot1.addPoolGroup(pool2.address, "D6", {from: ballot1Admin});
-        await ballot1.addPoolGroup(pool2.address, "NY", {from: ballot1Admin});
+    // VOTE
+    for (let name in config.voters) {
+        if (config.voters.hasOwnProperty(name)) {
+            let voter = config.voters[name];
+            let pool = config.pools[voter.pool].contract;
+            await pool.castVote(voter.vote, {from: voter.address});
+        }
+    }
 
-        //ballot2: specify which pools are allowed, set metadata
-        await ballot2.addPool(pool1.address, {from: ballot2Admin});
-        await ballot2.addPoolGroup(pool1.address, "D5", {from: ballot2Admin});
-        await ballot2.addPoolGroup(pool1.address, "NY", {from: ballot2Admin});
-        await ballot2.addPool(pool2.address, {from: ballot2Admin});
-        await ballot2.addPoolGroup(pool2.address, "D6", {from: ballot2Admin});
-        await ballot2.addPoolGroup(pool2.address, "NY", {from: ballot2Admin});
+    // close
 
-        //all activate
-        await election.activate({from: electionAdmin});
-        await ballot1.activate({from: ballot1Admin});
-        await ballot2.activate({from: ballot2Admin});
-        await pool1.activate({from: poolAdmin});
-        await pool2.activate({from: poolAdmin});
+    for (let name in config.pools) {
+        if (config.pools.hasOwnProperty(name)) {
+            let pool = config.pools[name];
+            await pool.contract.close({from: pool.admin});
+        }
+    }
+    for (let name in config.ballots) {
+        if (config.ballots.hasOwnProperty(name)) {
+            let ballot = config.ballots[name];
+            await ballot.contract.close({from: ballot.admin});
+        }
+    }
+    await config.contract.close({from: config.admin});
 
-        // cast votes
-        await pool1.castVote("encrypted-vote1", {from: voter1});
-        await pool2.castVote("encrypted-vote2", {from: voter2});
 
-        // close election
-        await pool1.close({from: poolAdmin});
-        await pool2.close({from: poolAdmin});
-        await ballot1.close({from: ballot1Admin});
-        await ballot2.close({from: ballot2Admin});
-        await election.close({from: electionAdmin});
+    return config;
+};
+
+contract('Simple Election', function (accounts) {
+    let config;
+
+    before(async () => {
+        config = await setupConfig( {
+            admin: accounts[1],
+            ballots: {
+                ballot1: {
+                    admin: accounts[2],
+                    metadata: "ipfs1",
+                    groups: ["US"]
+                }
+            },
+            pools: {
+                pool1: {
+                    admin: accounts[3],
+                    groups: ["US"],
+                    ballots: ["ballot1"]
+                }
+            },
+            voters: {
+                voter1: {
+                    pool: "pool1",
+                    address: accounts[6],
+                    vote: "encrypted-vote-1"
+                }
+            }
+        });
     });
 
-    it("should get D5 voter by pool", async function() {
-        let votes = await getVotesByGroup(ballot1, "D5");
+    it("should get 1 US vote for ballot1", async function() {
+        let ballot = config.ballots.ballot1.contract;
+        let votes = await getVotesByGroup(ballot, "US");
         assert.equal(votes.length, 1);
-        assert.equal(votes[0], "encrypted-vote1");
+        assert.equal(votes[0], config.voters.voter1.vote);
     });
 
-    it("should get D6 voter by pool", async function() {
-        let votes = await getVotesByGroup(ballot1, "D6");
-        assert.equal(votes.length, 1);
-        assert.equal(votes[0], "encrypted-vote2");
+});
+
+contract('Hierarchical Ballots, Two Pools, Two Voters', function (accounts) {
+    let config;
+
+    before(async () => {
+        config = await setupConfig( {
+            admin: accounts[1],
+            ballots: {
+                ballot1: {
+                    admin: accounts[2],
+                    metadata: "ipfs1",
+                    groups: ["D5","D6","NY"]
+                },
+                ballot2: {
+                    admin: accounts[3],
+                    metadata: "ipfs2",
+                    groups: ["D5"]
+                },
+                ballot3: {
+                    admin: accounts[3],
+                    metadata: "ipfs3",
+                    groups: ["D6"]
+                }
+            },
+            pools: {
+                pool1: {
+                    admin: accounts[4],
+                    groups: ["D5", "NY"],
+                    ballots: ["ballot2", "ballot1"]
+                },
+                pool2: {
+                    admin: accounts[5],
+                    groups: ["D6", "NY"],
+                    ballots: ["ballot3", "ballot1"]
+                }
+            },
+            voters: {
+                voter1: {
+                    pool: "pool1",
+                    address: accounts[6],
+                    vote: "encrypted-vote-1"
+                },
+                voter2: {
+                    pool: "pool2",
+                    address: accounts[7],
+                    vote: "encrypted-vote-2"
+                }
+            }
+        });
     });
 
-    it("should get NY voters by pool", async function() {
-        let votes = await getVotesByGroup(ballot1, "NY");
+    it("should get 2 NY votes for ballot1", async function() {
+        let ballot = config.ballots.ballot1.contract;
+        let votes = await getVotesByGroup(ballot, "NY");
         assert.equal(votes.length, 2);
-        assert.equal(votes[0], "encrypted-vote1");
-        assert.equal(votes[1], "encrypted-vote2");
+        assert.equal(votes[0], config.voters.voter1.vote);
+        assert.equal(votes[1], config.voters.voter2.vote);
     });
 
-    it("should get pools by group", async function () {
-        let nyPoolCount = await ballot1.groupPoolCount("NY");
-        let d6PoolCount = await ballot1.groupPoolCount("D6");
-        assert.equal(nyPoolCount, 2);
-        assert.equal(d6PoolCount, 1);
+    it("should get 1 D5 votes for ballot1", async function() {
+        let ballot = config.ballots.ballot1.contract;
+        let votes = await getVotesByGroup(ballot, "D5");
+        assert.equal(votes.length, 1);
+        assert.equal(votes[0], config.voters.voter1.vote);
     });
 
-    it("should store votes", async function () {
-        let vote1 = await pool1.getVote(voter1, {from: voter1});
-        assert.equal(vote1, "encrypted-vote1");
-        let vote2 = await pool2.getVote(voter2, {from: voter2});
-        assert.equal(vote2, "encrypted-vote2");
+    it("should get 1 D6 votes for ballot1", async function() {
+        let ballot = config.ballots.ballot1.contract;
+        let votes = await getVotesByGroup(ballot, "D6");
+        assert.equal(votes.length, 1);
+        assert.equal(votes[0], config.voters.voter2.vote);
     });
+
+    it("should get 1 D5 votes for ballot2", async function() {
+        let ballot = config.ballots.ballot2.contract;
+        let votes = await getVotesByGroup(ballot, "D5");
+        assert.equal(votes.length, 1);
+        assert.equal(votes[0], config.voters.voter1.vote);
+    });
+
+    it("should get 1 D6 votes for ballot3", async function() {
+        let ballot = config.ballots.ballot3.contract;
+        let votes = await getVotesByGroup(ballot, "D6");
+        assert.equal(votes.length, 1);
+        assert.equal(votes[0], config.voters.voter2.vote);
+    });
+});
+
+contract('Two Overlapping Ballots, Two Pools, Two Voters', function (accounts) {
+
+    let config;
+
+    before(async () => {
+        config = await setupConfig( {
+                admin: accounts[1],
+                ballots: {
+                    ballot1: {
+                        admin: accounts[2],
+                        metadata: "ipfs1",
+                        groups: ["D5", "D6", "NY"]
+                    },
+                    ballot2: {
+                        admin: accounts[3],
+                        metadata: "ipfs1",
+                        groups: ["D5", "D6", "NY"]
+                    }
+                },
+                pools: {
+                    pool1: {
+                        admin: accounts[4],
+                        groups: ["D5", "NY"],
+                        ballots: ["ballot1", "ballot2"]
+                    },
+                    pool2: {
+                        admin: accounts[5],
+                        groups: ["D6", "NY"],
+                        ballots: ["ballot1", "ballot2"]
+                    }
+                },
+                voters: {
+                    voter1: {
+                        pool: "pool1",
+                        address: accounts[6],
+                        vote: "encrypted-vote-1"
+                    },
+                    voter2: {
+                        pool: "pool2",
+                        address: accounts[7],
+                        vote: "encrypted-vote-2"
+                    }
+                }
+        });
+
+    });
+
+    it("should get 2 NY votes for ballot1", async function() {
+        let ballot = config.ballots.ballot1.contract;
+        let votes = await getVotesByGroup(ballot, "NY");
+        assert.equal(votes.length, 2);
+        assert.equal(votes[0], config.voters.voter1.vote);
+        assert.equal(votes[1], config.voters.voter2.vote);
+    });
+
+    it("should get 2 NY votes for ballot2", async function() {
+        let ballot = config.ballots.ballot2.contract;
+        let votes = await getVotesByGroup(ballot, "NY");
+        assert.equal(votes.length, 2);
+        assert.equal(votes[0], config.voters.voter1.vote);
+        assert.equal(votes[1], config.voters.voter2.vote);
+    });
+
+    it("should get 1 D5 vote for ballot1", async function() {
+        let ballot = config.ballots.ballot1.contract;
+        let votes = await getVotesByGroup(ballot, "D5");
+        assert.equal(votes.length, 1);
+        assert.equal(votes[0], config.voters.voter1.vote);
+    });
+
+    it("should get 1 D6 vote for ballot1", async function() {
+        let ballot = config.ballots.ballot1.contract;
+        let votes = await getVotesByGroup(ballot, "D6");
+        assert.equal(votes.length, 1);
+        assert.equal(votes[0], config.voters.voter2.vote);
+    });
+
+    it("should get 1 D5 vote for ballot2", async function() {
+        let ballot = config.ballots.ballot2.contract;
+        let votes = await getVotesByGroup(ballot, "D5");
+        assert.equal(votes.length, 1);
+        assert.equal(votes[0], config.voters.voter1.vote);
+    });
+
+    it("should get 1 D6 vote for ballot2", async function() {
+        let ballot = config.ballots.ballot2.contract;
+        let votes = await getVotesByGroup(ballot, "D6");
+        assert.equal(votes.length, 1);
+        assert.equal(votes[0], config.voters.voter2.vote);
+    });
+
+
 });
