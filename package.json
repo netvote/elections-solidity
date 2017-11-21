@@ -1,7 +1,7 @@
 {
   "name": "elections",
   "version": "1.0.0",
-  "description": "Netvote election contracts",
+  "description": "Elections Contracts",
   "main": "truffle-config.js",
   "directories": {
     "test": "test"

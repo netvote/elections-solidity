@@ -19,8 +19,16 @@
 
 pragma solidity ^0.4.17;
 
-import '../ElectionPhaseable.sol';
+import './Election.sol';
 
 contract RegistrationPool is ElectionPhaseable {
+
+    address[] ballots;
+
+    function castVote(string vote) public voting {
+        for(uint256 i = 0; i<ballots.length; i++) {
+            Ballot(ballots[i]).castVote(vote, msg.sender);
+        }
+    }
 
 }
