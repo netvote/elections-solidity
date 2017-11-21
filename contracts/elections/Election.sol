@@ -61,9 +61,17 @@ contract Ballot is ElectionPhaseable {
     Election election;
     string public metadataLocation;
     mapping (address => bool) voterVoted;
-    mapping (address => string) votes;
     mapping (address => bool) pools;
     mapping (address => address[]) poolVoters;
+    mapping (address => PoolGroup) poolGroups;
+
+    address[] internal poolList;
+    mapping (address => uint256) poolListIndex;
+
+    struct PoolGroup {
+        mapping(string => bool) groupExists;
+        string[] groups;
+    }
 
     function Ballot(address e, address ownerAddress) public {
         election = Election(e);
@@ -79,18 +87,45 @@ contract Ballot is ElectionPhaseable {
         metadataLocation = location;
     }
 
+    function poolCount() constant public returns (uint256) {
+        return poolList.length;
+    }
+
+    function getPool(uint256 index) constant public returns (address) {
+        return poolList[index];
+    }
+
+    function poolGroupLength(address pool) constant public returns (uint256) {
+        return poolGroups[pool].groups.length;
+    }
+
+    function getPoolGroup(address pool, uint256 groupIndex) constant public returns (string) {
+        return poolGroups[pool].groups[groupIndex];
+    }
+
     function addPool(address pool) public building admin {
+        require(!pools[pool]);
         pools[pool] = true;
+        poolList.push(pool);
+        poolListIndex[pool] = poolList.length - 1;
     }
 
     function removePool(address pool) public building admin {
-        pools[pool] = false;
+        delete pools[pool];
+        delete poolList[poolListIndex[pool]];
+        delete poolListIndex[pool];
     }
 
-    function castVote(string vote, address voter) public voting poolExists {
+    function addPoolGroup(address pool, string group) public building admin {
+        require(pools[pool]);
+        require(!poolGroups[pool].groupExists[group]);
+        poolGroups[pool].groups.push(group);
+        poolGroups[pool].groupExists[group] = true;
+    }
+
+    function castVote(address voter) public voting poolExists {
         require(!voterVoted[voter]);
         voterVoted[voter] = true;
-        votes[voter] = vote;
         poolVoters[msg.sender].push(voter);
     }
 }

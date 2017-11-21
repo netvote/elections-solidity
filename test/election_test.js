@@ -30,8 +30,15 @@ contract('Election Admin Actions', function (accounts) {
 
         //ballots specify which pools are allowed, set metadata
         await ballot1.addPool(pool.address, {from: ballot1Admin});
+
+        await ballot1.addPoolGroup(pool.address, "D5", {from: ballot1Admin});
+        await ballot1.addPoolGroup(pool.address, "NY", {from: ballot1Admin});
         await ballot1.setMetadataLocation("ipfsReference", {from: ballot1Admin});
+
+
         await ballot2.addPool(pool.address, {from: ballot2Admin});
+        await ballot2.addPoolGroup(pool.address, "D5", {from: ballot2Admin});
+        await ballot2.addPoolGroup(pool.address, "NY", {from: ballot2Admin});
         await ballot2.setMetadataLocation("ipfsReference", {from: ballot2Admin});
 
         //all activate their respective parts
@@ -42,6 +49,8 @@ contract('Election Admin Actions', function (accounts) {
     });
 
     it("should let me vote", async function () {
-        await pool.castVote("encrypted-vote", {from: voter});
+        //await pool.castVote("encrypted-vote", {from: voter});
+
+        await console.log("hello")
     });
 });

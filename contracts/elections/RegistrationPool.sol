@@ -25,6 +25,8 @@ contract RegistrationPool is ElectionPhaseable {
 
     mapping (address => bool) ballotExists;
     address[] ballots;
+    mapping (address => string) votes;
+    mapping (address => bool) voterVoted;
 
     function addBallot(address bal) public building admin {
         require(!ballotExists[bal]);
@@ -37,8 +39,11 @@ contract RegistrationPool is ElectionPhaseable {
     }
 
     function castVote(string vote) public voting {
+        require(!voterVoted[msg.sender]);
+        voterVoted[msg.sender] = true;
+        votes[msg.sender] = vote;
         for(uint256 i = 0; i<ballots.length; i++) {
-            Ballot(ballots[i]).castVote(vote, msg.sender);
+            Ballot(ballots[i]).castVote(msg.sender);
         }
     }
 
