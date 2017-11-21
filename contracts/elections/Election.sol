@@ -60,9 +60,16 @@ contract Election is ElectionPhaseable {
 contract Ballot is ElectionPhaseable {
     Election election;
     string public metadataLocation;
+
+    // map of voters who have voted (to prevent duplicates)
     mapping (address => bool) voterVoted;
-    mapping (address => bool) pools;
+
+    // map of configured pools (to avoid unauthorized pool interactions)
+    mapping (address => bool) poolExists;
+
+    // voters for pool
     mapping (address => address[]) poolVoters;
+
     mapping (address => PoolGroup) poolGroups;
 
     address[] internal poolList;
@@ -78,13 +85,45 @@ contract Ballot is ElectionPhaseable {
         owner = ownerAddress;
     }
 
-    modifier poolExists() {
-        require(pools[msg.sender]);
+    modifier validPool() {
+        require(poolExists[msg.sender]);
         _;
     }
 
     function setMetadataLocation(string location) public building admin {
         metadataLocation = location;
+    }
+
+    function collectPoolsByGroup(string group) constant internal returns (address[]) {
+        address[] memory res = new address[](poolList.length);
+        uint256 count = 0;
+        for (uint256 i =0; i<poolList.length; i++) {
+            if (poolExists[poolList[i]]) {
+                if(poolGroups[poolList[i]].groupExists[group]){
+                    res[i] = poolList[i];
+                    count++;
+                }
+            }
+        }
+        address[] memory pruned = new address[](count);
+        uint256 index = 0;
+        for (uint256 j =0; j<res.length; j++) {
+            if (res[j] != address(0)) {
+                pruned[index] = res[j];
+                index++;
+            }
+        }
+        return pruned;
+    }
+
+    function groupPoolCount(string group) constant public returns (uint256) {
+        address[] memory res = collectPoolsByGroup(group);
+        return res.length;
+    }
+
+    function getGroupPool(string group, uint256 index) constant public returns (address) {
+        address[] memory res = collectPoolsByGroup(group);
+        return res[index];
     }
 
     function poolCount() constant public returns (uint256) {
@@ -95,37 +134,77 @@ contract Ballot is ElectionPhaseable {
         return poolList[index];
     }
 
-    function poolGroupLength(address pool) constant public returns (uint256) {
+    function getPoolVoterCount(address pool) constant public returns(uint256) {
+        return poolVoters[pool].length;
+    }
+
+    function getPoolVoter(address pool, uint256 i) constant public returns(address) {
+        return poolVoters[pool][i];
+    }
+
+    function poolGroupCount(address pool) constant public returns (uint256) {
         return poolGroups[pool].groups.length;
     }
 
     function getPoolGroup(address pool, uint256 groupIndex) constant public returns (string) {
+        require(poolExists[pool]);
         return poolGroups[pool].groups[groupIndex];
     }
 
     function addPool(address pool) public building admin {
-        require(!pools[pool]);
-        pools[pool] = true;
+        require(!poolExists[pool]);
+        poolExists[pool] = true;
         poolList.push(pool);
         poolListIndex[pool] = poolList.length - 1;
     }
 
     function removePool(address pool) public building admin {
-        delete pools[pool];
+        delete poolExists[pool];
         delete poolList[poolListIndex[pool]];
         delete poolListIndex[pool];
     }
 
     function addPoolGroup(address pool, string group) public building admin {
-        require(pools[pool]);
+        require(poolExists[pool]);
         require(!poolGroups[pool].groupExists[group]);
         poolGroups[pool].groups.push(group);
         poolGroups[pool].groupExists[group] = true;
     }
 
-    function castVote(address voter) public voting poolExists {
+    function castVote(address voter) public voting validPool {
         require(!voterVoted[voter]);
         voterVoted[voter] = true;
         poolVoters[msg.sender].push(voter);
+    }
+}
+
+contract RegistrationPool is ElectionPhaseable {
+    mapping (address => bool) ballotExists;
+    address[] ballots;
+    mapping (address => string) votes;
+    mapping (address => bool) voterVoted;
+
+    function addBallot(address bal) public building admin {
+        require(!ballotExists[bal]);
+        ballotExists[bal] = true;
+        ballots.push(bal);
+    }
+
+    function getVote(address voter) public constant returns (string) {
+        require(isClosed() || msg.sender == voter || ballotExists[msg.sender]);
+        return votes[voter];
+    }
+
+    function clearBallots() public building admin {
+        delete ballots;
+    }
+
+    function castVote(string vote) public voting {
+        require(!voterVoted[msg.sender]);
+        voterVoted[msg.sender] = true;
+        votes[msg.sender] = vote;
+        for(uint256 i = 0; i<ballots.length; i++) {
+            Ballot(ballots[i]).castVote(msg.sender);
+        }
     }
 }

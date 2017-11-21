@@ -53,6 +53,10 @@ contract ElectionPhaseable is Lockable {
         _;
     }
 
+    function isClosed() public constant returns (bool) {
+        return electionPhase == ElectionPhase.Closed;
+    }
+
     function activate() public building admin {
         electionPhase = ElectionPhase.Voting;
     }
