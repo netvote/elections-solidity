@@ -23,7 +23,18 @@ import './Election.sol';
 
 contract RegistrationPool is ElectionPhaseable {
 
+    mapping (address => bool) ballotExists;
     address[] ballots;
+
+    function addBallot(address bal) public building admin {
+        require(!ballotExists[bal]);
+        ballotExists[bal] = true;
+        ballots.push(bal);
+    }
+
+    function clearBallots() public building admin {
+        delete ballots;
+    }
 
     function castVote(string vote) public voting {
         for(uint256 i = 0; i<ballots.length; i++) {

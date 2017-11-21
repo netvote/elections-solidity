@@ -36,11 +36,11 @@ contract Election is ElectionPhaseable {
         _;
     }
 
-    function createBallot(address ownerAddress) public building admin returns (Ballot)  {
+    function createBallot(address ownerAddress) public building admin returns (address)  {
         Ballot b = new Ballot(this, ownerAddress);
         ballots[address(b)] = b;
         ballotList.push(address(b));
-        return b;
+        return address(b);
     }
 
     function addBallot(address b) public building admin ballotNotExists(b) {
@@ -65,8 +65,8 @@ contract Ballot is ElectionPhaseable {
     mapping (address => bool) pools;
     mapping (address => address[]) poolVoters;
 
-    function Ballot(Election e, address ownerAddress) public {
-        election = e;
+    function Ballot(address e, address ownerAddress) public {
+        election = Election(e);
         owner = ownerAddress;
     }
 
