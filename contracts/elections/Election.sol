@@ -23,7 +23,11 @@ import '../ElectionPhaseable.sol';
 import './VoteAllowance.sol';
 import 'zeppelin-solidity/contracts/ReentrancyGuard.sol';
 
+// Election
+// top-level structure for election
 contract Election is ElectionPhaseable, ReentrancyGuard {
+    event KeyReleased();
+
     VoteAllowance allowance;
     address allowanceAccount;
 
@@ -45,6 +49,7 @@ contract Election is ElectionPhaseable, ReentrancyGuard {
     //TODO: instead of from admin, this should be only key writer (specified address)
     function setPrivateKey(string key) public closed admin {
         privateKey = key;
+        KeyReleased();
     }
 
     function addPool(address p) public building admin {

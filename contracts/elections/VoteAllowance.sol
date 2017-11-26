@@ -22,6 +22,7 @@ pragma solidity ^0.4.17;
 import '../Lockable.sol';
 
 contract VoteAllowance is Lockable {
+    event Vote(address election);
 
     // how many votes a votecoin buys for this address
     mapping(address => uint256) votesPerCoin;
@@ -30,7 +31,7 @@ contract VoteAllowance is Lockable {
     //TODO: this will be richer, but for now is just a number
     mapping(address => uint256) allowance;
 
-    // account -> election -> bool, elections allowed to transact for account
+    // elections allowed to transact for account
     mapping(address => mapping(address => bool)) accountToElections;
 
     // prevents reentrant attacks
@@ -68,5 +69,6 @@ contract VoteAllowance is Lockable {
     function deduct(address account) public unlocked allowedElection(account) lockAccount(account)   {
         require(allowance[account] > 0);
         allowance[account] = allowance[account] - 1;
+        Vote(msg.sender);
     }
 }
