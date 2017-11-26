@@ -19,9 +19,10 @@
 
 pragma solidity ^0.4.17;
 
-import '../ElectionPhaseable.sol';
-import './VoteAllowance.sol';
-import 'zeppelin-solidity/contracts/ReentrancyGuard.sol';
+import "../ElectionPhaseable.sol";
+import "./VoteAllowance.sol";
+import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
+
 
 // Election
 // top-level structure for election

@@ -19,9 +19,10 @@
 
 pragma solidity ^0.4.17;
 
-import '../ElectionPhaseable.sol';
-import './Election.sol';
-import './Ballot.sol';
+import "../ElectionPhaseable.sol";
+import "./Election.sol";
+import "./Ballot.sol";
+
 
 contract RegistrationPool is ElectionPhaseable {
     Election election;
@@ -93,7 +94,7 @@ contract RegistrationPool is ElectionPhaseable {
 
     // reset the ballot list
     function clearBallots() public building admin {
-        for(uint256 i = 0; i<ballots.length; i++) {
+        for (uint256 i = 0; i<ballots.length; i++) {
             delete ballotExists[ballots[i]];
         }
         delete ballots;
@@ -115,7 +116,7 @@ contract RegistrationPool is ElectionPhaseable {
     // for each ballot, cast vote for sender, store vote to pool
     function castVote(string vote) public voting notDuplicate registeredVoter {
         votes[msg.sender] = vote;
-        for(uint256 i = 0; i<ballots.length; i++) {
+        for (uint256 i = 0; i<ballots.length; i++) {
             Ballot(ballots[i]).castVote(msg.sender);
         }
         election.castVote();

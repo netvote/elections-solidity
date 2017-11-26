@@ -19,7 +19,8 @@
 
 pragma solidity ^0.4.17;
 
-import '../ElectionPhaseable.sol';
+import "../ElectionPhaseable.sol";
+
 
 contract Ballot is ElectionPhaseable {
     event BallotVote(address pool, address voter);
@@ -63,9 +64,9 @@ contract Ballot is ElectionPhaseable {
     function collectPoolsByGroup(string group) constant internal returns (address[]) {
         address[] memory res = new address[](poolList.length);
         uint256 count = 0;
-        for (uint256 i =0; i<poolList.length; i++) {
+        for (uint256 i = 0; i<poolList.length; i++) {
             if (poolExists[poolList[i]]) {
-                if(poolGroupMapping[poolList[i]][group]){
+                if (poolGroupMapping[poolList[i]][group]) {
                     res[i] = poolList[i];
                     count++;
                 }
@@ -73,7 +74,7 @@ contract Ballot is ElectionPhaseable {
         }
         address[] memory pruned = new address[](count);
         uint256 index = 0;
-        for (uint256 j =0; j<res.length; j++) {
+        for (uint256 j = 0; j<res.length; j++) {
             if (res[j] != address(0)) {
                 pruned[index] = res[j];
                 index++;
@@ -113,7 +114,7 @@ contract Ballot is ElectionPhaseable {
     function getPrunedGroups() constant internal returns (string[]) {
         string[] memory res = new string[](groups.length);
         uint256 count = 0;
-        for (uint256 i =0; i<groups.length; i++) {
+        for (uint256 i = 0; i<groups.length; i++) {
             if (groupExists[groups[i]]) {
                 res[i] = groups[i];
                 count++;
@@ -121,7 +122,7 @@ contract Ballot is ElectionPhaseable {
         }
         string[] memory pruned = new string[](count);
         uint256 index = 0;
-        for (uint256 j =0; j<res.length; j++) {
+        for (uint256 j = 0; j<res.length; j++) {
             if (bytes(res[j]).length > 0) {
                 pruned[index] = res[j];
                 index++;

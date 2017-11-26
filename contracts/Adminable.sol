@@ -19,7 +19,8 @@
 
 pragma solidity ^0.4.17;
 
-import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+import "zeppelin-solidity/contracts/ownership/Ownable.sol";
+
 
 // Adminable
 // allows an owner to designate more admins

@@ -19,7 +19,8 @@
 
 pragma solidity ^0.4.17;
 
-import './Adminable.sol';
+import "./Adminable.sol";
+
 
 // Lockable
 // a global failsafe that allows an owner of a contract to temporarily lock the contract

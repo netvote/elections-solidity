@@ -19,8 +19,9 @@
 
 pragma solidity ^0.4.17;
 
-import '../Lockable.sol';
-import 'zeppelin-solidity/contracts/ReentrancyGuard.sol';
+import "../Lockable.sol";
+import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
+
 
 contract VoteAllowance is Lockable, ReentrancyGuard {
     event Vote(address election);

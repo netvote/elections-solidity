@@ -19,7 +19,8 @@
 
 pragma solidity ^0.4.17;
 
-import './Lockable.sol';
+import "./Lockable.sol";
+
 
 // ElectionPhaseable
 // state machine for transitioning election components between modes
