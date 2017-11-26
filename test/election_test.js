@@ -46,7 +46,7 @@ let setupConfig = async(config) => {
 
     let va = await VoteAllowance.new({from: config.netvote});
     await va.addVotes(config.account.owner, config.account.allowance, {from: config.netvote});
-    config.contract = await Election.new(va.address, config.account.owner, {from: config.admin });
+    config.contract = await Election.new(va.address, config.account.owner, config.allowUpdates, {from: config.admin });
     await va.addElection(config.contract.address, {from: config.account.owner});
 
     log("setting up ballots")
@@ -153,6 +153,7 @@ contract('Simple Election', function (accounts) {
             },
             netvote: accounts[0],
             admin: accounts[1],
+            allowUpdates: false,
             ballots: {
                 ballot1: {
                     admin: accounts[2],
@@ -197,6 +198,7 @@ contract('Hierarchical Ballots, Two Pools, Two Voters', function (accounts) {
             },
             netvote: accounts[0],
             admin: accounts[1],
+            allowUpdates: false,
             ballots: {
                 ballot1: {
                     admin: accounts[2],
@@ -290,6 +292,7 @@ contract('Two Overlapping Ballots, Two Pools, Two Voters', function (accounts) {
                 },
                 netvote: accounts[0],
                 admin: accounts[1],
+                allowUpdates: false,
                 ballots: {
                     ballot1: {
                         admin: accounts[2],
