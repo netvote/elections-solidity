@@ -44,6 +44,7 @@ contract VoteAllowance is Lockable {
         allowance[account] = allowance[account] + votes;
     }
 
+    // reentrant guard scoped to account
     modifier lockAccount(address account){
         require(accountLock[account] == false);
         accountLock[account] = true;
