@@ -16,8 +16,10 @@ contract RegistrationPool is ElectionPhaseable {
     // note: ballot must also allow this pool
     address[] ballots;
 
-    // raw mapping of votes for voter
+    // vote for each voter
     mapping (address => string) votes;
+
+    // map to prevent duplicate votes
     mapping (address => bool) voterVoted;
 
     function RegistrationPool(address e) public {
@@ -59,6 +61,7 @@ contract RegistrationPool is ElectionPhaseable {
         _;
     }
 
+    // for each ballot, cast vote for sender, store vote to pool
     function castVote(string vote) public voting notDuplicate {
         votes[msg.sender] = vote;
         for(uint256 i = 0; i<ballots.length; i++) {
@@ -68,6 +71,7 @@ contract RegistrationPool is ElectionPhaseable {
         Vote(msg.sender);
     }
 
+    // voter can update their vote if election allows it
     function updateVote(string vote) public voting updatesAllowed {
         require(voterVoted[msg.sender]);
         votes[msg.sender] = vote;

@@ -20,8 +20,9 @@
 pragma solidity ^0.4.17;
 
 import '../Lockable.sol';
+import 'zeppelin-solidity/contracts/ReentrancyGuard.sol';
 
-contract VoteAllowance is Lockable {
+contract VoteAllowance is Lockable, ReentrancyGuard {
     event Vote(address election);
     event ElectionRegistered(address acct, address election);
     event ElectionUnregistered(address acct, address election);
@@ -30,49 +31,42 @@ contract VoteAllowance is Lockable {
     mapping(address => uint256) votesPerCoin;
 
     // number of votes left on an account
-    //TODO: this will be richer, but for now is just a number
     mapping(address => uint256) allowance;
 
     // elections allowed to transact for account
     mapping(address => mapping(address => bool)) accountToElections;
 
-    // prevents reentrant attacks
-    mapping(address => bool) accountLock;
-
+    // if new contract is purchased, this is rate
     uint256 currentVotesPerCoin;
 
     //TODO: right now only NETVOTE (owner of this contract) can add votes
-    function addVotes(address account, uint256 votes) public unlocked admin lockAccount(account) {
+    function addVotes(address account, uint256 votes) public unlocked admin nonReentrant {
         //TODO: transact votecoin
         allowance[account] = allowance[account] + votes;
     }
 
-    // reentrant guard scoped to account
-    modifier lockAccount(address account){
-        require(accountLock[account] == false);
-        accountLock[account] = true;
-        _;
-        accountLock[account] = false;
-    }
-
-    modifier allowedElection(address account){
+    // election must be allowed to transact on account
+    modifier senderAllowed(address account){
         require(accountToElections[account][msg.sender]);
         _;
     }
 
+    // allow an address (election) to transact on sender's behalf
     function addElection(address election) public unlocked {
         require(!accountToElections[msg.sender][election]);
         accountToElections[msg.sender][election] = true;
         ElectionRegistered(msg.sender, election);
     }
 
+    // disallow an address (election) to transact on sender's behalf
     function removeElection(address election) public unlocked {
         require(accountToElections[msg.sender][election]);
         accountToElections[msg.sender][election] = false;
         ElectionUnregistered(msg.sender, election);
     }
 
-    function deduct(address account) public unlocked allowedElection(account) lockAccount(account)   {
+    // subtract 1 vote from account
+    function deduct(address account) public unlocked senderAllowed(account) nonReentrant {
         require(allowance[account] > 0);
         allowance[account] = allowance[account] - 1;
         Vote(msg.sender);

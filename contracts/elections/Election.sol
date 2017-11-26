@@ -37,8 +37,14 @@ contract Election is ElectionPhaseable, ReentrancyGuard {
 
     mapping(address => bool) allowedPools;
 
-    function Election(address allow, address acct, bool allowUpdates) public {
-        allowance = VoteAllowance(allow);
+    /**
+     * @dev Create an election
+     * @param allowanceAddress address of Netvote VoteAllowance contract
+     * @param acct address of account from whom to deduct votes from
+     * @param allowUpdates allow voters to update votes after voting
+     */
+    function Election(address allowanceAddress, address acct, bool allowUpdates) public {
+        allowance = VoteAllowance(allowanceAddress);
         allowanceAccount = acct;
         allowVoteUpdates = allowUpdates;
     }
