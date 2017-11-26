@@ -71,7 +71,7 @@ let setupConfig = async(config) => {
         if (config.pools.hasOwnProperty(name)) {
             let poolConfig = config.pools[name];
             let admin = poolConfig.admin;
-            let pool = await RegistrationPool.new(config.contract.address, {from: admin});
+            let pool = await RegistrationPool.new(config.contract.address, config.registrar, {from: admin});
             config.pools[name].contract = pool;
 
             for(let i=0; i<poolConfig.ballots.length; i++) {
@@ -110,18 +110,19 @@ let setupConfig = async(config) => {
         }
     }
 
-    log("voting")
+    log("register & voting");
 
     // VOTE
     for (let name in config.voters) {
         if (config.voters.hasOwnProperty(name)) {
             let voter = config.voters[name];
             let pool = config.pools[voter.pool].contract;
+            await pool.register(voter.address, {from: config.registrar});
             await pool.castVote(voter.vote, {from: voter.address});
         }
     }
 
-    log("closing")
+    log("closing");
 
     // CLOSE
     for (let name in config.pools) {
@@ -154,6 +155,7 @@ contract('Simple Election', function (accounts) {
             netvote: accounts[0],
             admin: accounts[1],
             allowUpdates: false,
+            registrar: accounts[8],
             ballots: {
                 ballot1: {
                     admin: accounts[2],
@@ -199,6 +201,7 @@ contract('Hierarchical Ballots, Two Pools, Two Voters', function (accounts) {
             netvote: accounts[0],
             admin: accounts[1],
             allowUpdates: false,
+            registrar: accounts[8],
             ballots: {
                 ballot1: {
                     admin: accounts[2],
@@ -293,6 +296,7 @@ contract('Two Overlapping Ballots, Two Pools, Two Voters', function (accounts) {
                 netvote: accounts[0],
                 admin: accounts[1],
                 allowUpdates: false,
+                registrar: accounts[8],
                 ballots: {
                     ballot1: {
                         admin: accounts[2],

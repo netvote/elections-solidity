@@ -8,6 +8,8 @@ contract RegistrationPool is ElectionPhaseable {
     Election election;
     event Vote(address voter);
     event UpdateVote(address voter);
+    event RegisterVoter(address voter);
+    event UnregisterVoter(address voter);
 
     // map that lets us avoid adding duplicate ballots to ballot list
     mapping (address => bool) ballotExists;
@@ -22,8 +24,38 @@ contract RegistrationPool is ElectionPhaseable {
     // map to prevent duplicate votes
     mapping (address => bool) voterVoted;
 
-    function RegistrationPool(address e) public {
-        election = Election(e);
+    // map to record whether voter is registered
+    mapping (address => bool) registeredVoters;
+
+    address registrar;
+
+    function RegistrationPool(address el, address reg) public {
+        election = Election(el);
+        registrar = reg;
+    }
+
+    modifier onlyRegistrar() {
+        require(msg.sender == registrar);
+        _;
+    }
+
+    modifier registeredVoter() {
+        require(registeredVoters[msg.sender]);
+        _;
+    }
+
+    // register a voter
+    function register(address v) public onlyRegistrar {
+        require(!registeredVoters[v]);
+        registeredVoters[v] = true;
+        RegisterVoter(v);
+    }
+
+    // only can be unregistered if not already voted
+    function unregister(address v) public admin {
+        require(registeredVoters[v] && !voterVoted[v]);
+        delete registeredVoters[v];
+        UnregisterVoter(v);
     }
 
     // add a ballot to this pool
@@ -62,7 +94,7 @@ contract RegistrationPool is ElectionPhaseable {
     }
 
     // for each ballot, cast vote for sender, store vote to pool
-    function castVote(string vote) public voting notDuplicate {
+    function castVote(string vote) public voting notDuplicate registeredVoter {
         votes[msg.sender] = vote;
         for(uint256 i = 0; i<ballots.length; i++) {
             Ballot(ballots[i]).castVote(msg.sender);
