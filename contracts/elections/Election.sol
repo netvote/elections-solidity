@@ -32,7 +32,7 @@ contract Election is ElectionPhaseable, ReentrancyGuard {
 
     mapping(address => bool) allowedPools;
 
-    function Election(address allow, address acct){
+    function Election(address allow, address acct) public {
         allowance = VoteAllowance(allow);
         allowanceAccount = acct;
     }
@@ -66,6 +66,8 @@ contract Election is ElectionPhaseable, ReentrancyGuard {
 }
 
 contract Ballot is ElectionPhaseable {
+    event BallotVote(address pool, address voter);
+
     string public metadataLocation;
 
     // map of voters to prevent duplicates
@@ -217,18 +219,20 @@ contract Ballot is ElectionPhaseable {
         require(!voterVoted[voter]);
         voterVoted[voter] = true;
         poolVoters[msg.sender].push(voter);
+        BallotVote(msg.sender, voter);
     }
 }
 
 contract RegistrationPool is ElectionPhaseable {
     Election election;
+    event Vote(address voter);
 
     mapping (address => bool) ballotExists;
     address[] ballots;
     mapping (address => string) votes;
     mapping (address => bool) voterVoted;
 
-    function RegistrationPool(address e) {
+    function RegistrationPool(address e) public {
         election = Election(e);
     }
 
@@ -259,5 +263,6 @@ contract RegistrationPool is ElectionPhaseable {
             Ballot(ballots[i]).castVote(msg.sender);
         }
         election.castVote();
+        Vote(msg.sender);
     }
 }
