@@ -37,10 +37,12 @@ contract Election is ElectionPhaseable, ReentrancyGuard {
         allowanceAccount = acct;
     }
 
+    //TODO: instead of from admin, this should be only key writer (specified address)
     function setPublicKey(string key) public building admin {
         publicKey = key;
     }
 
+    //TODO: instead of from admin, this should be only key writer (specified address)
     function setPrivateKey(string key) public closed admin {
         privateKey = key;
     }
