@@ -23,6 +23,8 @@ import '../Lockable.sol';
 
 contract VoteAllowance is Lockable {
     event Vote(address election);
+    event ElectionRegistered(address election);
+    event ElectionUnregistered(address election);
 
     // how many votes a votecoin buys for this address
     mapping(address => uint256) votesPerCoin;
@@ -59,11 +61,15 @@ contract VoteAllowance is Lockable {
     }
 
     function addElection(address election) public unlocked {
+        require(!accountToElections[msg.sender][election]);
         accountToElections[msg.sender][election] = true;
+        ElectionRegistered(election);
     }
 
     function removeElection(address election) public unlocked {
+        require(accountToElections[msg.sender][election]);
         accountToElections[msg.sender][election] = false;
+        ElectionUnregistered(election);
     }
 
     function deduct(address account) public unlocked allowedElection(account) lockAccount(account)   {
