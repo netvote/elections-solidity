@@ -22,6 +22,10 @@ let Ballot = artifacts.require("Ballot");
 let RegistrationPool = artifacts.require("RegistrationPool");
 let VoteAllowance = artifacts.require("VoteAllowance");
 
+let log = (msg) => {
+    //console.log(msg);
+};
+
 let getVotesByGroup = async (ballot, group) => {
     let poolCount = await ballot.groupPoolCount(group);
     let votes = [];
@@ -45,7 +49,7 @@ let setupConfig = async(config) => {
     config.contract = await Election.new(va.address, config.account.owner, {from: config.admin });
     await va.addElection(config.contract.address, {from: config.account.owner});
 
-    console.log("setting up ballots")
+    log("setting up ballots")
 
     // SETUP BALLOTS
     for (let name in config.ballots) {
@@ -61,7 +65,7 @@ let setupConfig = async(config) => {
         }
     }
 
-    console.log("setting up pools")
+    log("setting up pools")
 
     // SETUP POOLS
     for (let name in config.pools) {
@@ -89,7 +93,7 @@ let setupConfig = async(config) => {
         }
     }
 
-    console.log("activating")
+    log("activating")
 
 
     //ACTIVATE
@@ -107,7 +111,7 @@ let setupConfig = async(config) => {
         }
     }
 
-    console.log("voting")
+    log("voting")
 
     // VOTE
     for (let name in config.voters) {
@@ -118,7 +122,7 @@ let setupConfig = async(config) => {
         }
     }
 
-    console.log("closing")
+    log("closing")
 
     // CLOSE
     for (let name in config.pools) {

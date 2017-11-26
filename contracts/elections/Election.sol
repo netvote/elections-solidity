@@ -27,11 +27,22 @@ contract Election is ElectionPhaseable, ReentrancyGuard {
     VoteAllowance allowance;
     address allowanceAccount;
 
+    string public publicKey;
+    string public privateKey;
+
     mapping(address => bool) allowedPools;
 
     function Election(address allow, address acct){
         allowance = VoteAllowance(allow);
         allowanceAccount = acct;
+    }
+
+    function setPublicKey(string key) building admin {
+        publicKey = key;
+    }
+
+    function setPrivateKey(string key) closed admin {
+        privateKey = key;
     }
 
     function addPool(address p) public building admin {

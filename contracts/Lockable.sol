@@ -23,6 +23,8 @@ import './Adminable.sol';
 
 
 contract Lockable is Adminable {
+    event Locked();
+    event Unlocked();
 
     bool lockState = false;
 
@@ -42,9 +44,11 @@ contract Lockable is Adminable {
 
     function lock() public admin {
         lockState = true;
+        Locked();
     }
 
     function unlock() public admin {
         lockState = false;
+        Unlocked();
     }
 }

@@ -23,6 +23,9 @@ import './Lockable.sol';
 
 
 contract ElectionPhaseable is Lockable {
+    event Closed();
+    event Activated();
+    event Aborted();
 
     ElectionPhase public electionPhase = ElectionPhase.Building;
 
@@ -59,13 +62,16 @@ contract ElectionPhaseable is Lockable {
 
     function activate() public building admin {
         electionPhase = ElectionPhase.Voting;
+        Activated();
     }
 
     function close() public voting admin {
         electionPhase = ElectionPhase.Closed;
+        Closed();
     }
 
     function abort() public admin {
         electionPhase = ElectionPhase.Aborted;
+        Aborted();
     }
 }
