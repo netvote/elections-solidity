@@ -20,6 +20,7 @@
 let Election = artifacts.require("Election");
 let Ballot = artifacts.require("Ballot");
 let RegistrationPool = artifacts.require("RegistrationPool");
+let VoteAllowance = artifacts.require("VoteAllowance");
 
 let getVotesByGroup = async (ballot, group) => {
     let poolCount = await ballot.groupPoolCount(group);
@@ -38,35 +39,43 @@ let getVotesByGroup = async (ballot, group) => {
 };
 
 let setupConfig = async(config) => {
-    config.contract = await Election.new({from: config.admin });
+
+    let va = await VoteAllowance.new({from: config.netvote});
+    await va.addVotes(config.account.owner, config.account.allowance, {from: config.netvote});
+    config.contract = await Election.new(va.address, config.account.owner, {from: config.admin });
+    await va.addElection(config.contract.address, {from: config.account.owner});
+
+    console.log("setting up ballots")
 
     // SETUP BALLOTS
     for (let name in config.ballots) {
         if (config.ballots.hasOwnProperty(name)) {
             let ballotConfig = config.ballots[name];
             let admin = ballotConfig.admin;
-            let ballot = await Ballot.new(config.contract.address, admin, {from: config.admin});
+            let ballot = await Ballot.new(admin, {from: config.admin});
             await ballot.setMetadataLocation(ballotConfig.metadata, {from: admin});
             for(let i=0; i<ballotConfig.groups.length; i++){
                 await ballot.addGroup(ballotConfig.groups[i], {from: admin});
             }
             config.ballots[name].contract = ballot;
-            await config.contract.addBallot(ballot.address, {from: config.admin});
         }
     }
+
+    console.log("setting up pools")
 
     // SETUP POOLS
     for (let name in config.pools) {
         if (config.pools.hasOwnProperty(name)) {
             let poolConfig = config.pools[name];
             let admin = poolConfig.admin;
-            let pool = await RegistrationPool.new({from: admin});
+            let pool = await RegistrationPool.new(config.contract.address, {from: admin});
             config.pools[name].contract = pool;
 
             for(let i=0; i<poolConfig.ballots.length; i++) {
                 let ballot = config.ballots[poolConfig.ballots[i]];
                 await pool.addBallot(ballot.contract.address, {from: admin});
                 await ballot.contract.addPool(pool.address, {from: ballot.admin});
+                await config.contract.addPool(pool.address, {from: config.admin});
                 for(let g=0; g<poolConfig.groups.length; g++) {
                     let group = poolConfig.groups[g];
                     for(let j=0; j<ballot.groups.length; j++){
@@ -80,22 +89,25 @@ let setupConfig = async(config) => {
         }
     }
 
+    console.log("activating")
+
+
     //ACTIVATE
     config.contract.activate({from: config.admin});
-
     for (let name in config.ballots) {
         if (config.ballots.hasOwnProperty(name)) {
             let ballot = config.ballots[name];
             await ballot.contract.activate({from: ballot.admin});
         }
     }
-
     for (let name in config.pools) {
         if (config.pools.hasOwnProperty(name)) {
             let pool = config.pools[name];
             await pool.contract.activate({from: pool.admin});
         }
     }
+
+    console.log("voting")
 
     // VOTE
     for (let name in config.voters) {
@@ -106,8 +118,9 @@ let setupConfig = async(config) => {
         }
     }
 
-    // close
+    console.log("closing")
 
+    // CLOSE
     for (let name in config.pools) {
         if (config.pools.hasOwnProperty(name)) {
             let pool = config.pools[name];
@@ -131,6 +144,11 @@ contract('Simple Election', function (accounts) {
 
     before(async () => {
         config = await setupConfig( {
+            account: {
+                allowance: 1,
+                owner: accounts[7]
+            },
+            netvote: accounts[0],
             admin: accounts[1],
             ballots: {
                 ballot1: {
@@ -170,6 +188,11 @@ contract('Hierarchical Ballots, Two Pools, Two Voters', function (accounts) {
 
     before(async () => {
         config = await setupConfig( {
+            account: {
+                allowance: 2,
+                owner: accounts[7]
+            },
+            netvote: accounts[0],
             admin: accounts[1],
             ballots: {
                 ballot1: {
@@ -258,6 +281,11 @@ contract('Two Overlapping Ballots, Two Pools, Two Voters', function (accounts) {
 
     before(async () => {
         config = await setupConfig( {
+                account: {
+                    allowance: 2,
+                    owner: accounts[7]
+                },
+                netvote: accounts[0],
                 admin: accounts[1],
                 ballots: {
                     ballot1: {

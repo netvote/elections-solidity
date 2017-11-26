@@ -23,4 +23,49 @@ import '../Lockable.sol';
 
 contract VoteAllowance is Lockable {
 
+    // how many votes a votecoin buys for this address
+    mapping(address => uint256) votesPerCoin;
+
+    // number of votes left on an account
+    //TODO: this will be richer, but for now is just a number
+    mapping(address => uint256) allowance;
+
+    // account -> election -> bool, elections allowed to transact for account
+    mapping(address => mapping(address => bool)) accountToElections;
+
+    // prevents reentrant attacks
+    mapping(address => bool) accountLock;
+
+    uint256 currentVotesPerCoin;
+
+    //TODO: right now only NETVOTE (owner of this contract) can add votes
+    function addVotes(address account, uint256 votes) public unlocked admin lockAccount(account) {
+        //TODO: transact votecoin
+        allowance[account] = allowance[account] + votes;
+    }
+
+    modifier lockAccount(address account){
+        require(accountLock[account] == false);
+        accountLock[account] = true;
+        _;
+        accountLock[account] = false;
+    }
+
+    modifier allowedElection(address account){
+        require(accountToElections[account][msg.sender]);
+        _;
+    }
+
+    function addElection(address election) public unlocked {
+        accountToElections[msg.sender][election] = true;
+    }
+
+    function removeElection(address election) public unlocked {
+        accountToElections[msg.sender][election] = false;
+    }
+
+    function deduct(address account) public unlocked allowedElection(account) lockAccount(account)   {
+        require(allowance[account] > 0);
+        allowance[account] = allowance[account] - 1;
+    }
 }

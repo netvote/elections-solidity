@@ -20,69 +20,62 @@
 pragma solidity ^0.4.17;
 
 import '../ElectionPhaseable.sol';
+import './VoteAllowance.sol';
+import 'zeppelin-solidity/contracts/ReentrancyGuard.sol';
 
-contract Election is ElectionPhaseable {
-    mapping(address => Ballot) ballots;
-    mapping(address => uint) ballotIndex;
-    address[] ballotList;
+contract Election is ElectionPhaseable, ReentrancyGuard {
+    VoteAllowance allowance;
+    address allowanceAccount;
 
-    modifier ballotNotExists(address b) {
-        require(ballots[msg.sender] == address(0));
+    mapping(address => bool) allowedPools;
+
+    function Election(address allow, address acct){
+        allowance = VoteAllowance(allow);
+        allowanceAccount = acct;
+    }
+
+    function addPool(address p) public building admin {
+        allowedPools[p] = true;
+    }
+
+    function removePool(address p) public building admin {
+        delete allowedPools[p];
+    }
+
+    modifier poolIsAllowed() {
+        require(allowedPools[msg.sender]);
         _;
     }
 
-    modifier ballotExists(address b) {
-        require(ballots[msg.sender] != address(0));
-        _;
-    }
-
-    function createBallot(address ownerAddress) public building admin returns (address)  {
-        Ballot b = new Ballot(this, ownerAddress);
-        ballots[address(b)] = b;
-        ballotList.push(address(b));
-        return address(b);
-    }
-
-    function addBallot(address b) public building admin ballotNotExists(b) {
-        require(b != address(0));
-        ballots[b] = Ballot(b);
-        ballotList.push(b);
-        ballotIndex[b] = ballotList.length-1;
-    }
-
-    function removeBallot(address b) public building admin ballotExists(b) {
-        delete ballots[b];
-        delete ballotList[ballotIndex[b]];
-        delete ballotIndex[b];
+    function castVote() public voting nonReentrant poolIsAllowed {
+        allowance.deduct(allowanceAccount);
     }
 }
 
 contract Ballot is ElectionPhaseable {
-    Election election;
     string public metadataLocation;
 
-    // map of voters who have voted (to prevent duplicates)
+    // map of voters to prevent duplicates
     mapping (address => bool) voterVoted;
 
-    // map of configured pools (to avoid unauthorized pool interactions)
+    // map that helps determine whether a pool is authorized
     mapping (address => bool) poolExists;
 
-    // voters for pool
+    // pools to the list of voters
     mapping (address => address[]) poolVoters;
 
-    // groups for a pool
+    // maps groups to pools to determine whehter the pool should be counted for group
     mapping (address => mapping(string => bool)) poolGroupMapping;
 
-    // result groups for ballot
-    mapping (string => bool) groupExists;
-    mapping (string => uint256) groupIndex;
-    string[] groups;
+    // result groups for ballot (e.g., NY, District 6, etc...)
+    mapping (string => bool) internal groupExists;
+    mapping (string => uint256) internal groupIndex;
+    string[] public groups;
 
     address[] internal poolList;
     mapping (address => uint256) poolListIndex;
 
-    function Ballot(address e, address ownerAddress) public {
-        election = Election(e);
+    function Ballot(address ownerAddress) public {
         owner = ownerAddress;
     }
 
@@ -139,10 +132,12 @@ contract Ballot is ElectionPhaseable {
         return poolVoters[pool].length;
     }
 
+    // gets voter address by pool and index (for iteration)
     function getPoolVoter(address pool, uint256 i) constant public returns(address) {
         return poolVoters[pool][i];
     }
 
+    // internal method for getting groups that have not been removed to make indexes work
     function getPrunedGroups() constant internal returns (string[]) {
         string[] memory res = new string[](groups.length);
         uint256 count = 0;
@@ -213,10 +208,16 @@ contract Ballot is ElectionPhaseable {
 }
 
 contract RegistrationPool is ElectionPhaseable {
+    Election election;
+
     mapping (address => bool) ballotExists;
     address[] ballots;
     mapping (address => string) votes;
     mapping (address => bool) voterVoted;
+
+    function RegistrationPool(address e) {
+        election = Election(e);
+    }
 
     function addBallot(address bal) public building admin {
         require(!ballotExists[bal]);
@@ -233,12 +234,17 @@ contract RegistrationPool is ElectionPhaseable {
         delete ballots;
     }
 
-    function castVote(string vote) public voting {
+    modifier notDuplicate() {
         require(!voterVoted[msg.sender]);
         voterVoted[msg.sender] = true;
+        _;
+    }
+
+    function castVote(string vote) public voting notDuplicate {
         votes[msg.sender] = vote;
         for(uint256 i = 0; i<ballots.length; i++) {
             Ballot(ballots[i]).castVote(msg.sender);
         }
+        election.castVote();
     }
 }
