@@ -23,6 +23,7 @@ import "../ElectionPhaseable.sol";
 
 
 contract Ballot is ElectionPhaseable {
+    address public election;
     event BallotVote(address pool, address voter);
 
     string public metadataLocation;
@@ -47,7 +48,8 @@ contract Ballot is ElectionPhaseable {
     address[] internal poolList;
     mapping (address => uint256) poolListIndex;
 
-    function Ballot(address ownerAddress, string location) public {
+    function Ballot(address electionAddress, address ownerAddress, string location) public {
+        election = electionAddress;
         owner = ownerAddress;
         metadataLocation = location;
     }

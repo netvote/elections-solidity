@@ -56,7 +56,7 @@ let setupConfig = async(config) => {
         if (config.ballots.hasOwnProperty(name)) {
             let ballotConfig = config.ballots[name];
             let admin = ballotConfig.admin;
-            let ballot = await Ballot.new(admin, ballotConfig.metadata, {from: config.admin});
+            let ballot = await Ballot.new(config.contract.address, admin, ballotConfig.metadata, {from: config.admin});
             for(let i=0; i<ballotConfig.groups.length; i++){
                 await ballot.addGroup(ballotConfig.groups[i], {from: admin});
             }
