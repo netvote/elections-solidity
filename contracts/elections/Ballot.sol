@@ -37,7 +37,7 @@ contract Ballot is ElectionPhaseable {
     // pools to the list of voters
     mapping (address => address[]) poolVoters;
 
-    // maps groups to pools to determine whehter the pool should be counted for group
+    // maps groups to pools to determine whether the pool should be counted for group
     mapping (address => mapping(string => bool)) poolGroupMapping;
 
     // result groups for ballot (e.g., NY, District 6, etc...)
