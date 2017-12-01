@@ -1,0 +1,23 @@
+syntax = "proto3";
+package netvote;
+
+message VoteSelection {
+    enum SelectionType {
+        UNKNOWN = 0;
+        SELECTION = 1;
+        WRITEIN = 2;
+    }
+
+    message Selection {
+        uint32 value = 1;
+        string value_str = 2;
+    }
+
+    SelectionType type = 1;
+    Selection choice = 2;
+}
+
+message Vote {
+    string encryption_seed = 1;
+    map<string, VoteSelection> vote = 2;
+}

@@ -22,7 +22,13 @@ let Ballot = artifacts.require("Ballot");
 let RegistrationPool = artifacts.require("RegistrationPool");
 let VoteAllowance = artifacts.require("VoteAllowance");
 
-const PRIVATE_KEY = "this is a lousy private key";
+const protobuf = require("protobufjs");
+const crypto2 = require('crypto2');
+
+
+if(!web3.eth.defaultAccount){
+    web3.eth.defaultAccount = web3.eth.accounts[0];
+}
 
 let log = (msg) => {
     console.log(msg);
@@ -114,7 +120,8 @@ let setupConfig = async(config) => {
             let voter = config.voters[name];
             let pool = config.pools[voter.pool].contract;
             await pool.register(voter.address, {from: config.registrar});
-            await pool.castVote(voter.vote, {from: voter.address});
+            let vt = await pool.castVote(voter.vote, {from: voter.address});
+            console.log("VOTE="+vt.tx);
         }
     }
 
@@ -137,61 +144,123 @@ let setupConfig = async(config) => {
     return config;
 };
 
+
+const encrypt = async (str) => {
+    console.log("encrypting "+str);
+    return new Promise((resolve, reject) => {
+        crypto2.readPublicKey('scripts/key.pub', (err, pubKey) => {
+            if(err){
+                console.error("error loading key: "+err);
+                reject(err);
+                return
+            }
+            crypto2.encrypt.rsa(str, pubKey, (err, encrypted) => {
+                if(err){
+                    console.error("error encrypting: "+err);
+                    reject(err);
+                    return
+                }
+                resolve(encrypted);
+            })
+        });
+    });
+};
+
 module.exports = async function(callback) {
+
+    let root = await protobuf.load("scripts/vote.proto");
+    let Vote = root.lookupType("netvote.Vote");
+
+    let payload = {
+        encryptionSeed: "123e4567-e89b-12d3-a456-426655440000",
+        vote: {
+            "0x627306090abab3a6e1400e9345bc60c78a8bef57": {
+                type: 1,
+                choice: {
+                    value: 2
+                }
+            },
+            "0x627306090abab3a6e1400e9345bc60c78a8bef51": {
+                type: 1,
+                choice: {
+                    value: 2
+                }
+            },
+            "0x627306090abab3a6e1400e9345bc60c78a8bef52": {
+                type: 1,
+                choice: {
+                    value: 2
+                }
+            }
+        }
+    };
+
+    let errMsg = Vote.verify(payload);
+    if (errMsg) {
+        console.error("invalid:"+errMsg);
+        callback(errMsg);
+    }
+
+    let vote = Vote.create(payload);
+    let encodedVote = Vote.encode(vote).finish();
+    let encryptedStr = await encrypt(encodedVote);
+
+    console.log(JSON.stringify({
+        payload: JSON.stringify(payload),
+        encrypted: encryptedStr
+    },null,"\t"));
+
     let cfg = {
         account: {
             allowance: 2,
-            owner: web3.eth.accounts[7]
+            owner: web3.eth.defaultAccount
         },
-        netvote: web3.eth.accounts[0],
-        admin: web3.eth.accounts[1],
+        netvote: web3.eth.defaultAccount,
+        admin: web3.eth.defaultAccount,
         allowUpdates: false,
-        registrar: web3.eth.accounts[8],
+        registrar: web3.eth.defaultAccount,
         ballots: {
             ballot1: {
-                admin: web3.eth.accounts[2],
+                admin: web3.eth.defaultAccount,
                 metadata: "ipfs1",
                 groups: ["D5","D6","NY"]
             },
             ballot2: {
-                admin: web3.eth.accounts[3],
+                admin: web3.eth.defaultAccount,
                 metadata: "ipfs2",
                 groups: ["D5"]
             },
             ballot3: {
-                admin: web3.eth.accounts[3],
+                admin: web3.eth.defaultAccount,
                 metadata: "ipfs3",
                 groups: ["D6"]
             }
         },
         pools: {
             pool1: {
-                admin: web3.eth.accounts[4],
-                groups: ["D5", "NY"],
-                ballots: ["ballot2", "ballot1"]
+                admin: web3.eth.defaultAccount,
+                groups: ["D5", "D6", "NY"],
+                ballots: ["ballot1","ballot2","ballot3"]
             },
             pool2: {
-                admin: web3.eth.accounts[5],
-                groups: ["D6", "NY"],
-                ballots: ["ballot3", "ballot1"]
+                admin: web3.eth.defaultAccount,
+                groups: ["D5", "D6", "NY"],
+                ballots: ["ballot1","ballot2","ballot3"]
             }
         },
         voters: {
             voter1: {
                 pool: "pool1",
-                address: web3.eth.accounts[6],
-                vote: "encrypted-vote-1"
-            },
-            voter2: {
-                pool: "pool2",
-                address: web3.eth.accounts[7],
-                vote: "encrypted-vote-2"
+                address: web3.eth.defaultAccount,
+                vote: encryptedStr
             }
         }
     };
+
     let c = await setupConfig(cfg);
     printConfig(c);
     callback();
+
 };
 
 let printConfig = (cfg) => {
