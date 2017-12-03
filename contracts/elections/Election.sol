@@ -38,11 +38,11 @@ contract Election is ElectionPhaseable, ReentrancyGuard {
 
     mapping(address => bool) public allowedPools;
     mapping(address => uint256) public poolIndex;
-    address[] pools;
+    address[] public pools;
 
     mapping(address => bool) public ballotExists;
     mapping(address => uint256) public ballotIndex;
-    address[] ballots;
+    address[] public ballots;
 
     /**
      * @dev Create an election
@@ -85,9 +85,26 @@ contract Election is ElectionPhaseable, ReentrancyGuard {
                 ballots[index] = lastBallot;
                 ballotIndex[lastBallot] = index;
             }
+            // resize array
             ballots.length--;
             delete ballotExists[b];
             delete ballotIndex[b];
+        }
+    }
+
+    function removePool(address p) public building admin {
+        if (allowedPools[p]) {
+            uint256 index = poolIndex[p];
+            // if not last entry, copy last entry into b's slot
+            if (index < pools.length - 1) {
+                address lastPool = pools[pools.length-1];
+                pools[index] = lastPool;
+                poolIndex[lastPool] = index;
+            }
+            // resize array
+            pools.length--;
+            delete ballotExists[p];
+            delete poolIndex[p];
         }
     }
 
@@ -105,11 +122,6 @@ contract Election is ElectionPhaseable, ReentrancyGuard {
             pools.push(p);
             poolIndex[p] = pools.length - 1;
         }
-    }
-
-    function removePool(address p) public building admin {
-        delete allowedPools[p];
-        delete poolIndex[p];
     }
 
     modifier poolIsAllowed() {

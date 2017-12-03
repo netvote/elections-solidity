@@ -23,7 +23,7 @@ let RegistrationPool = artifacts.require("RegistrationPool");
 let VoteAllowance = artifacts.require("VoteAllowance");
 
 let log = (msg) => {
-    console.log(msg);
+    //console.log(msg);
 };
 
 let getVotesByGroup = async (ballot, group) => {
@@ -188,6 +188,108 @@ let doEndToEndElection = async(config) => {
         closeElection
     ], config);
 };
+
+contract('Election: Configuration TX', function (accounts) {
+    let config;
+
+    beforeEach(async ()=> {
+        config = {
+            account: {
+                allowance: 2,
+                owner: accounts[7]
+            },
+            netvote: accounts[0],
+            admin: accounts[1],
+            allowUpdates: false,
+            registrar: accounts[8],
+            ballots: {
+                ballot1: {
+                    admin: accounts[2],
+                    metadata: "ipfs1",
+                    groups: ["D5","D6","NY"]
+                },
+                ballot2: {
+                    admin: accounts[3],
+                    metadata: "ipfs2",
+                    groups: ["D5"]
+                },
+                ballot3: {
+                    admin: accounts[3],
+                    metadata: "ipfs3",
+                    groups: ["D6"]
+                }
+            },
+            pools: {
+                pool1: {
+                    admin: accounts[4],
+                    groups: ["D5", "NY"],
+                    ballots: ["ballot2", "ballot1"]
+                },
+                pool2: {
+                    admin: accounts[5],
+                    groups: ["D6", "NY"],
+                    ballots: ["ballot3", "ballot1"]
+                }
+            }
+        };
+
+        await doTransactions([
+            createElection,
+            createBallots,
+            createPools
+        ], config);
+    });
+
+    it("should have correct ballots assigned", async function() {
+        let count = await config.contract.getBallotCount();
+        assert.equal(count, 3);
+    });
+
+    // for ballots abc, remove a
+    it("should remove first ballot", async function() {
+        await config.contract.removeBallot(config.ballots["ballot1"].contract.address, {from: config.admin});
+        let count = await config.contract.getBallotCount();
+        assert.equal(count, 2);
+
+        let address1 = await config.contract.ballots(0);
+        let address2 = await config.contract.ballots(1);
+
+        // last entry moved to front
+        assert.equal(config.ballots["ballot3"].contract.address, address1);
+        assert.equal(config.ballots["ballot2"].contract.address, address2);
+    });
+
+    // for ballots abc, remove b
+    it("should remove second ballot", async function() {
+        await config.contract.removeBallot(config.ballots["ballot2"].contract.address, {from: config.admin});
+        let count = await config.contract.getBallotCount();
+        assert.equal(count, 2);
+
+        let address1 = await config.contract.ballots(0);
+        let address2 = await config.contract.ballots(1);
+
+        assert.equal(config.ballots["ballot1"].contract.address, address1);
+        assert.equal(config.ballots["ballot3"].contract.address, address2);
+    });
+
+    // for ballots abc, remove c
+    it("should remove third ballot", async function() {
+        await config.contract.removeBallot(config.ballots["ballot3"].contract.address, {from: config.admin});
+        let count = await config.contract.getBallotCount();
+        assert.equal(count, 2);
+
+        let address1 = await config.contract.ballots(0);
+        let address2 = await config.contract.ballots(1);
+
+        assert.equal(config.ballots["ballot1"].contract.address, address1);
+        assert.equal(config.ballots["ballot2"].contract.address, address2);
+    });
+});
+
+let printConfig = (config) => {
+
+};
+
 
 contract('Simple Election', function (accounts) {
     let config;
