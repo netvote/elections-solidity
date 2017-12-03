@@ -25,14 +25,14 @@ import "./Ballot.sol";
 
 
 contract RegistrationPool is ElectionPhaseable {
-    Election election;
+    Election public election;
     event Vote(address voter);
     event UpdateVote(address voter);
     event RegisterVoter(address voter);
     event UnregisterVoter(address voter);
 
     // map that lets us avoid adding duplicate ballots to ballot list
-    mapping (address => bool) ballotExists;
+    mapping (address => bool) public ballotExists;
 
     // list of ballots where votes will be distributed
     // note: ballot must also allow this pool
@@ -69,6 +69,35 @@ contract RegistrationPool is ElectionPhaseable {
         require(!registeredVoters[v]);
         registeredVoters[v] = true;
         RegisterVoter(v);
+    }
+
+    // returns true if pool can vote on all configured ballots
+    function checkBallots() public constant returns (bool) {
+        // ballots are configured
+        if ( ballots.length == 0) {
+            return false;
+        }
+        // all ballots have this pool
+        for (uint256 i = 0; i<ballots.length; i++) {
+            Ballot ballot = Ballot(ballots[i]);
+            if (!ballot.poolExists(this)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // returns true if pool can vote on election
+    function checkElection() public constant returns (bool) {
+        if ( election == address(0) ) {
+            return false;
+        }
+        return election.allowedPools(this);
+    }
+
+    // returns true if pool can vote on election
+    function checkConfig() public constant returns (bool) {
+        return checkElection() && checkBallots();
     }
 
     // only can be unregistered if not already voted

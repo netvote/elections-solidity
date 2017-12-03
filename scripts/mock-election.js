@@ -240,7 +240,7 @@ module.exports = async function(callback) {
             pool1: {
                 admin: web3.eth.defaultAccount,
                 groups: ["D5", "D6", "NY"],
-                ballots: ["ballot1","ballot2","ballot3"]
+                ballots: ["ballot1","ballot2"]
             },
             pool2: {
                 admin: web3.eth.defaultAccount,

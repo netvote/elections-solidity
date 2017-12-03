@@ -32,7 +32,7 @@ contract Ballot is ElectionPhaseable {
     mapping (address => bool) voterVoted;
 
     // map that helps determine whether a pool is authorized
-    mapping (address => bool) poolExists;
+    mapping (address => bool) public poolExists;
 
     // pools to the list of voters
     mapping (address => address[]) poolVoters;
@@ -110,6 +110,11 @@ contract Ballot is ElectionPhaseable {
     // gets voter address by pool and index (for iteration)
     function getPoolVoter(address pool, uint256 i) constant public returns(address) {
         return poolVoters[pool][i];
+    }
+
+    function checkConfig() public constant returns (bool) {
+        //TODO: implement
+        return true;
     }
 
     // internal method for getting groups that have not been removed to make indexes work

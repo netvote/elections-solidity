@@ -36,7 +36,10 @@ contract Election is ElectionPhaseable, ReentrancyGuard {
     string public privateKey;
     bool public allowVoteUpdates;
 
-    mapping(address => bool) allowedPools;
+    mapping(address => bool) public allowedPools;
+    mapping(address => uint256) public poolIndex;
+    address[] pools;
+    address[] ballots;
 
     /**
      * @dev Create an election
@@ -48,6 +51,11 @@ contract Election is ElectionPhaseable, ReentrancyGuard {
         allowance = VoteAllowance(allowanceAddress);
         allowanceAccount = acct;
         allowVoteUpdates = allowUpdates;
+    }
+
+    function checkConfig() public constant returns (bool) {
+        //TODO: implement
+        return true;
     }
 
     //TODO: instead of from admin, this should be only key writer (specified address)
@@ -62,11 +70,16 @@ contract Election is ElectionPhaseable, ReentrancyGuard {
     }
 
     function addPool(address p) public building admin {
-        allowedPools[p] = true;
+        if (!allowedPools[p]) {
+            allowedPools[p] = true;
+            pools.push(p);
+            poolIndex[p] = pools.length - 1;
+        }
     }
 
     function removePool(address p) public building admin {
         delete allowedPools[p];
+        delete poolIndex[p];
     }
 
     modifier poolIsAllowed() {
