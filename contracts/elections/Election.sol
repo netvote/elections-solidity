@@ -39,6 +39,9 @@ contract Election is ElectionPhaseable, ReentrancyGuard {
     mapping(address => bool) public allowedPools;
     mapping(address => uint256) public poolIndex;
     address[] pools;
+
+    mapping(address => bool) public ballotExists;
+    mapping(address => uint256) public ballotIndex;
     address[] ballots;
 
     /**
@@ -67,6 +70,33 @@ contract Election is ElectionPhaseable, ReentrancyGuard {
     function setPrivateKey(string key) public closed admin {
         privateKey = key;
         KeyReleased();
+    }
+
+    function getBallotCount() public constant returns (uint256) {
+        return ballots.length;
+    }
+
+    function removeBallot(address b) public building admin {
+        if (ballotExists[b]) {
+            uint256 index = ballotIndex[b];
+            // if not last entry, copy last entry into b's slot
+            if (index < ballots.length - 1) {
+                address lastBallot = ballots[ballots.length-1];
+                ballots[index] = lastBallot;
+                ballotIndex[lastBallot] = index;
+            }
+            ballots.length--;
+            delete ballotExists[b];
+            delete ballotIndex[b];
+        }
+    }
+
+    function addBallot(address b) public building admin {
+        if (!ballotExists[b]) {
+            ballotExists[b] = true;
+            ballots.push(b);
+            ballotIndex[b] = ballots.length - 1;
+        }
     }
 
     function addPool(address p) public building admin {
