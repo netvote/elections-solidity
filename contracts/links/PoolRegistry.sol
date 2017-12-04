@@ -28,6 +28,10 @@ contract PoolRegistry is Adminable, ElectionPhaseable {
 
     AddressSet.SetData poolSet;
 
+    function getPoolIndex(address p) public constant returns (uint256) {
+        return poolSet.indexOf(p);
+    }
+
     function getPool(uint256 index) public constant returns(address) {
         return poolSet.getAt(index);
     }

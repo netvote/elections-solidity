@@ -28,6 +28,10 @@ contract BallotRegistry is Adminable, ElectionPhaseable {
 
     AddressSet.SetData ballotSet;
 
+    function getBallotIndex(address b) public constant returns (uint256) {
+        return ballotSet.indexOf(b);
+    }
+
     function getBallot(uint256 index) public constant returns(address) {
         return ballotSet.getAt(index);
     }
