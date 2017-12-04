@@ -93,6 +93,9 @@ contract RegistrationPool is BallotRegistry {
             if (!Ballot(ballotSet.getAt(i)).poolExists(this)) {
                 return false;
             }
+            if (!election.ballotExists(ballotSet.getAt(i))) {
+                return false;
+            }
         }
         return true;
     }
