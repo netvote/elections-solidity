@@ -23,5 +23,5 @@ message BallotVote {
 
 message Vote {
     string encryption_seed = 1;
-    map<string, BallotVote> ballot_votes = 2;
+    repeated BallotVote ballot_votes = 2;
 }

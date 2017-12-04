@@ -224,29 +224,29 @@ module.exports = async function(callback) {
 
     let payload = {
         encryptionSeed: "123e4567-e89b-12d3-a456-426655440000",
-        ballot_votes: {
-            "0x627306090abab3a6e1400e9345bc60c78a8bef57": {
+        ballot_votes: [
+            {
                 votes: [{
                     choice: {
                         value: 2
                     }
                 }]
             },
-            "0x627306090abab3a6e1400e9345bc60c78a8bef51": {
+            {
                 votes: [{
                     choice: {
                         value: 2
                     }
                 }]
             },
-            "0x627306090abab3a6e1400e9345bc60c78a8bef52": {
+            {
                 votes: [{
                     choice: {
                         value: 2
                     }
                 }]
             }
-        }
+        ]
     };
 
     let errMsg = Vote.verify(payload);
@@ -304,7 +304,7 @@ module.exports = async function(callback) {
         },
         voters: {
             voter1: {
-                pool: "pool2",
+                pool: "pool1",
                 address: web3.eth.defaultAccount,
                 vote: encryptedStr
             }
