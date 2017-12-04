@@ -28,6 +28,10 @@ library Bytes32Set {
         bytes32[] entries;
     }
 
+    function indexOf(SetData storage self, bytes32 b) public constant returns (uint256) {
+        return self.entryIndex[b];
+    }
+
     function getAt(SetData storage self, uint256 index) public constant returns (bytes32) {
         return self.entries[index];
     }

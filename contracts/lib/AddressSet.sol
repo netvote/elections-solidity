@@ -28,6 +28,10 @@ library AddressSet {
         address[] entries;
     }
 
+    function indexOf(SetData storage self, address a) public constant returns (uint256) {
+        return self.entryIndex[a];
+    }
+
     function getAt(SetData storage self, uint256 index) public constant returns (address) {
         return self.entries[index];
     }
