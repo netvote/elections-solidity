@@ -62,7 +62,7 @@ let createBallots = async(config) => {
             let ballot = await Ballot.new(config.contract.address, admin, ballotConfig.metadata, {from: config.admin});
             await config.contract.addBallot(ballot.address, {from: config.admin});
             for(let i=0; i<ballotConfig.groups.length; i++){
-                await ballot.addGroup(ballotConfig.groups[i], {from: admin});
+                await ballot.addGroup(web3.fromAscii(ballotConfig.groups[i]), {from: admin});
             }
             config.ballots[name].contract = ballot;
         }
@@ -89,7 +89,7 @@ let createPools = async(config) => {
                     let group = poolConfig.groups[g];
                     for(let j=0; j<ballot.groups.length; j++){
                         if(ballot.groups[j] === group) {
-                            await ballot.contract.addPoolToGroup(pool.address, group, {from: ballot.admin});
+                            await ballot.contract.addPoolToGroup(pool.address, web3.fromAscii(group), {from: ballot.admin});
                             break;
                         }
                     }
