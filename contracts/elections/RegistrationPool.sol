@@ -42,6 +42,8 @@ contract RegistrationPool is BallotRegistry {
     // map to record whether voter is registered
     mapping (address => bool) registeredVoters;
 
+    address[] ballots;
+
     address registrar;
 
     function RegistrationPool(address el, address reg) public {
@@ -106,6 +108,13 @@ contract RegistrationPool is BallotRegistry {
         return checkElection() && checkBallots();
     }
 
+    function activate() public building admin {
+        for (uint256 i = 0; i<ballotSet.size(); i++) {
+            ballots.push(ballotSet.getAt(i));
+        }
+        super.activate();
+    }
+
     // only can be unregistered if not already voted
     function unregister(address v) public admin {
         require(registeredVoters[v] && !voterVoted[v]);
@@ -135,8 +144,8 @@ contract RegistrationPool is BallotRegistry {
     // for each ballot, cast vote for sender, store vote to pool
     function castVote(string vote) public voting notDuplicate registeredVoter {
         votes[msg.sender] = vote;
-        for (uint256 i = 0; i<ballotSet.size(); i++) {
-            Ballot(ballotSet.getAt(i)).castVote(msg.sender);
+        for (uint256 i = 0; i<ballots.length; i++) {
+            Ballot(ballots[i]).castVote(msg.sender);
         }
         election.castVote();
         Vote(msg.sender);
