@@ -22,24 +22,25 @@ pragma solidity ^0.4.17;
 import "../base/PoolRegistry.sol";
 import "../lib/Bytes32Set.sol";
 
+
 contract Ballot is PoolRegistry {
     using Bytes32Set for Bytes32Set.SetData;
-    Bytes32Set.SetData groupSet;
 
-    address public election;
+    // events
     event BallotVote(address pool, address voter);
 
+    // configuration
+    Bytes32Set.SetData groupSet;
+    mapping (bytes32 => AddressSet.SetData) groupPoolSet;
+    address public election;
     string public metadataLocation;
 
+    // state
     // map of voters to prevent duplicates
     mapping (address => bool) voterVoted;
 
     // pools to the list of voters
     mapping (address => address[]) poolVoters;
-
-    // maps groups to pools to determine whether the pool should be counted for group
-    mapping (address => mapping(bytes32 => bool)) poolGroupMapping;
-
 
     function Ballot(address electionAddress, address ownerAddress, string location) public {
         election = electionAddress;
@@ -56,35 +57,12 @@ contract Ballot is PoolRegistry {
         metadataLocation = location;
     }
 
-    function collectPoolsByGroup(bytes32 group) constant internal returns (address[]) {
-        address[] memory res = new address[](poolSet.size());
-        uint256 count = 0;
-        for (uint256 i = 0; i<poolSet.size(); i++) {
-            address pool = poolSet.getAt(i);
-            if (poolGroupMapping[pool][group]) {
-                res[i] = pool;
-                count++;
-            }
-        }
-        address[] memory pruned = new address[](count);
-        uint256 index = 0;
-        for (uint256 j = 0; j<res.length; j++) {
-            if (res[j] != address(0)) {
-                pruned[index] = res[j];
-                index++;
-            }
-        }
-        return pruned;
-    }
-
     function groupPoolCount(bytes32 group) constant public returns (uint256) {
-        address[] memory res = collectPoolsByGroup(group);
-        return res.length;
+        return groupPoolSet[group].size();
     }
 
     function getGroupPool(bytes32 group, uint256 index) constant public returns (address) {
-        address[] memory res = collectPoolsByGroup(group);
-        return res[index];
+        return groupPoolSet[group].getAt(index);
     }
 
     function getPoolVoterCount(address pool) constant public returns(uint256) {
@@ -120,8 +98,7 @@ contract Ballot is PoolRegistry {
     function addPoolToGroup(address pool, bytes32 group) public building admin {
         require(groupSet.contains(group));
         require(poolSet.contains(pool));
-        require(!poolGroupMapping[pool][group]);
-        poolGroupMapping[pool][group] = true;
+        groupPoolSet[group].put(pool);
     }
 
     function castVote(address voter) public voting validPool {
