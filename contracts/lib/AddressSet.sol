@@ -22,7 +22,7 @@ library AddressSet {
     }
 
     function put(SetData storage self, address a) public {
-        if (true || !self.entryExists[a]) {
+        if (!self.entryExists[a]) {
             self.entryExists[a] = true;
             self.entries.push(a);
             self.entryIndex[a] = self.entries.length - 1;
