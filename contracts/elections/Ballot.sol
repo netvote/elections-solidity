@@ -19,10 +19,9 @@
 
 pragma solidity ^0.4.17;
 
-import "../ElectionPhaseable.sol";
+import "../base/PoolRegistry.sol";
 
-
-contract Ballot is ElectionPhaseable {
+contract Ballot is PoolRegistry {
     address public election;
     event BallotVote(address pool, address voter);
 
@@ -30,9 +29,6 @@ contract Ballot is ElectionPhaseable {
 
     // map of voters to prevent duplicates
     mapping (address => bool) voterVoted;
-
-    // map that helps determine whether a pool is authorized
-    mapping (address => bool) public poolExists;
 
     // pools to the list of voters
     mapping (address => address[]) poolVoters;
@@ -45,9 +41,6 @@ contract Ballot is ElectionPhaseable {
     mapping (string => uint256) internal groupIndex;
     string[] public groups;
 
-    address[] internal poolList;
-    mapping (address => uint256) poolListIndex;
-
     function Ballot(address electionAddress, address ownerAddress, string location) public {
         election = electionAddress;
         owner = ownerAddress;
@@ -55,7 +48,7 @@ contract Ballot is ElectionPhaseable {
     }
 
     modifier validPool() {
-        require(poolExists[msg.sender]);
+        require(poolSet.contains(msg.sender));
         _;
     }
 
@@ -64,14 +57,13 @@ contract Ballot is ElectionPhaseable {
     }
 
     function collectPoolsByGroup(string group) constant internal returns (address[]) {
-        address[] memory res = new address[](poolList.length);
+        address[] memory res = new address[](poolSet.size());
         uint256 count = 0;
-        for (uint256 i = 0; i<poolList.length; i++) {
-            if (poolExists[poolList[i]]) {
-                if (poolGroupMapping[poolList[i]][group]) {
-                    res[i] = poolList[i];
-                    count++;
-                }
+        for (uint256 i = 0; i<poolSet.size(); i++) {
+            address pool = poolSet.getAt(i);
+            if (poolGroupMapping[pool][group]) {
+                res[i] = pool;
+                count++;
             }
         }
         address[] memory pruned = new address[](count);
@@ -93,14 +85,6 @@ contract Ballot is ElectionPhaseable {
     function getGroupPool(string group, uint256 index) constant public returns (address) {
         address[] memory res = collectPoolsByGroup(group);
         return res[index];
-    }
-
-    function poolCount() constant public returns (uint256) {
-        return poolList.length;
-    }
-
-    function getPool(uint256 index) constant public returns (address) {
-        return poolList[index];
     }
 
     function getPoolVoterCount(address pool) constant public returns(uint256) {
@@ -160,22 +144,9 @@ contract Ballot is ElectionPhaseable {
         groupIndex[group] = groups.length - 1;
     }
 
-    function addPool(address pool) public building admin {
-        require(!poolExists[pool]);
-        poolExists[pool] = true;
-        poolList.push(pool);
-        poolListIndex[pool] = poolList.length - 1;
-    }
-
-    function removePool(address pool) public building admin {
-        delete poolExists[pool];
-        delete poolList[poolListIndex[pool]];
-        delete poolListIndex[pool];
-    }
-
     function addPoolToGroup(address pool, string group) public building admin {
         require(groupExists[group]);
-        require(poolExists[pool]);
+        require(poolSet.contains(pool));
         require(!poolGroupMapping[pool][group]);
         poolGroupMapping[pool][group] = true;
     }

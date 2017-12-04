@@ -19,20 +19,16 @@
 
 pragma solidity ^0.4.17;
 
-import "../ElectionPhaseable.sol";
 import "./VoteAllowance.sol";
+import "../base/BallotRegistry.sol";
+import "../base/PoolRegistry.sol";
 import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
-import "../lib/AddressSet.sol";
-
 
 // Election
 // top-level structure for election
-contract Election is ElectionPhaseable, ReentrancyGuard {
-    using AddressSet for AddressSet.SetData;
+contract Election is BallotRegistry, PoolRegistry, ReentrancyGuard {
 
     event KeyReleased();
-    AddressSet.SetData poolSet;
-    AddressSet.SetData ballotSet;
 
     VoteAllowance allowance;
     address allowanceAccount;
@@ -67,46 +63,6 @@ contract Election is ElectionPhaseable, ReentrancyGuard {
     function setPrivateKey(string key) public closed admin {
         privateKey = key;
         KeyReleased();
-    }
-
-    // BALLOTS
-
-    function getBallot(uint256 index) public constant returns(address) {
-        return ballotSet.getAt(index);
-    }
-
-    function getBallotCount() public constant returns (uint256) {
-        return ballotSet.size();
-    }
-
-    function addBallot(address b) public building admin {
-        ballotSet.put(b);
-    }
-
-    function removeBallot(address b) public building admin {
-        ballotSet.remove(b);
-    }
-
-    // POOLS
-
-    function getPool(uint256 index) public constant returns(address) {
-        return poolSet.getAt(index);
-    }
-
-    function getPoolCount() public constant returns (uint256) {
-        return poolSet.size();
-    }
-
-    function removePool(address p) public building admin {
-        poolSet.remove(p);
-    }
-
-    function addPool(address p) public building admin {
-        poolSet.put(p);
-    }
-
-    function poolExists(address p) public constant returns (bool) {
-        return poolSet.contains(p);
     }
 
     modifier poolIsAllowed() {
