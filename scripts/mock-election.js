@@ -170,8 +170,24 @@ let closeBallots = async(config) => {
 };
 
 let closeElection = async(config) => {
+    log("close election");
     await config.contract.close({from: config.admin});
     return config;
+};
+
+let releasePrivateKey = async(config) => {
+    log("release key");
+    return new Promise((resolve, reject) => {
+        crypto2.readPrivateKey("scripts/private.pem", async (err, privKey) => {
+            if(err){
+                console.error("error loading key: "+err);
+                reject(err);
+                return
+            }
+            await config.contract.setPrivateKey(privKey, {from: config.admin});
+            resolve(config);
+        })
+    });
 };
 
 let doTransactions = async(transactions, config) => {
@@ -192,14 +208,15 @@ let doEndToEndElection = async(config) => {
         castVotes,
         closePools,
         closeBallots,
-        closeElection
+        closeElection,
+        releasePrivateKey
     ], config);
 };
 
 const encrypt = async (str) => {
     console.log("encrypting "+str);
     return new Promise((resolve, reject) => {
-        crypto2.readPublicKey('scripts/key.pub', (err, pubKey) => {
+        crypto2.readPublicKey('scripts/public.pem', (err, pubKey) => {
             if(err){
                 console.error("error loading key: "+err);
                 reject(err);
