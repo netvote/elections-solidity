@@ -19,7 +19,7 @@
 
 pragma solidity ^0.4.17;
 
-import "../base/PoolRegistry.sol";
+import "../links/PoolRegistry.sol";
 import "../lib/Bytes32Set.sol";
 
 

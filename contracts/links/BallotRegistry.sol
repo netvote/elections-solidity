@@ -19,38 +19,32 @@
 
 pragma solidity ^0.4.17;
 
-import "./Adminable.sol";
+import "../state/ElectionPhaseable.sol";
+import "../lib/AddressSet.sol";
 
 
-// Lockable
-// a global failsafe that allows an owner of a contract to temporarily lock the contract
-contract Lockable is Adminable {
-    event Locked();
-    event Unlocked();
+contract BallotRegistry is Adminable, ElectionPhaseable {
+    using AddressSet for AddressSet.SetData;
 
-    bool lockState = false;
+    AddressSet.SetData ballotSet;
 
-    modifier locked() {
-        require(lockState);
-        _;
+    function getBallot(uint256 index) public constant returns(address) {
+        return ballotSet.getAt(index);
     }
 
-    modifier unlocked() {
-        require(!lockState);
-        _;
+    function getBallotCount() public constant returns (uint256) {
+        return ballotSet.size();
     }
 
-    function isLocked() public constant returns (bool) {
-        return lockState;
+    function addBallot(address b) public building admin {
+        ballotSet.put(b);
     }
 
-    function lock() public admin {
-        lockState = true;
-        Locked();
+    function removeBallot(address b) public building admin {
+        ballotSet.remove(b);
     }
 
-    function unlock() public admin {
-        lockState = false;
-        Unlocked();
+    function ballotExists(address b) public constant returns (bool) {
+        return ballotSet.contains(b);
     }
 }

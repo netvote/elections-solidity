@@ -20,8 +20,8 @@
 pragma solidity ^0.4.17;
 
 import "./VoteAllowance.sol";
-import "../base/BallotRegistry.sol";
-import "../base/PoolRegistry.sol";
+import "../links/BallotRegistry.sol";
+import "../links/PoolRegistry.sol";
 import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
 
 

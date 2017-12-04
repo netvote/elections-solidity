@@ -19,7 +19,7 @@
 
 pragma solidity ^0.4.17;
 
-import "../Lockable.sol";
+import "../state/Lockable.sol";
 import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
 
 

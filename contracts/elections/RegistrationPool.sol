@@ -19,14 +19,15 @@
 
 pragma solidity ^0.4.17;
 
-import "../ElectionPhaseable.sol";
 import "./Election.sol";
 import "./Ballot.sol";
-import "../base/BallotRegistry.sol";
+import "../links/BallotRegistry.sol";
 
 
 contract RegistrationPool is BallotRegistry {
     Election public election;
+
+    // events
     event Vote(address voter);
     event UpdateVote(address voter);
     event RegisterVoter(address voter);

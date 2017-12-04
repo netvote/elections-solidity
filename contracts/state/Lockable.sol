@@ -19,32 +19,38 @@
 
 pragma solidity ^0.4.17;
 
-import "../ElectionPhaseable.sol";
-import "../lib/AddressSet.sol";
+import "../auth/Adminable.sol";
 
 
-contract PoolRegistry is Adminable, ElectionPhaseable {
-    using AddressSet for AddressSet.SetData;
+// Lockable
+// a global failsafe that allows an owner of a contract to temporarily lock the contract
+contract Lockable is Adminable {
+    event Locked();
+    event Unlocked();
 
-    AddressSet.SetData poolSet;
+    bool lockState = false;
 
-    function getPool(uint256 index) public constant returns(address) {
-        return poolSet.getAt(index);
+    modifier locked() {
+        require(lockState);
+        _;
     }
 
-    function getPoolCount() public constant returns (uint256) {
-        return poolSet.size();
+    modifier unlocked() {
+        require(!lockState);
+        _;
     }
 
-    function addPool(address p) public building admin {
-        poolSet.put(p);
+    function isLocked() public constant returns (bool) {
+        return lockState;
     }
 
-    function removePool(address p) public building admin {
-        poolSet.remove(p);
+    function lock() public admin {
+        lockState = true;
+        Locked();
     }
 
-    function poolExists(address p) public constant returns (bool) {
-        return poolSet.contains(p);
+    function unlock() public admin {
+        lockState = false;
+        Unlocked();
     }
 }
