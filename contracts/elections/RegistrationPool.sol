@@ -108,6 +108,7 @@ contract RegistrationPool is BallotRegistry {
         return checkElection() && checkBallots();
     }
 
+    // activates pool
     function activate() public building admin {
         for (uint256 i = 0; i<ballotSet.size(); i++) {
             ballots.push(ballotSet.getAt(i));

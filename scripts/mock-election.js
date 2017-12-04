@@ -224,24 +224,27 @@ module.exports = async function(callback) {
 
     let payload = {
         encryptionSeed: "123e4567-e89b-12d3-a456-426655440000",
-        vote: {
+        ballot_votes: {
             "0x627306090abab3a6e1400e9345bc60c78a8bef57": {
-                type: 1,
-                choice: {
-                    value: 2
-                }
+                votes: [{
+                    choice: {
+                        value: 2
+                    }
+                }]
             },
             "0x627306090abab3a6e1400e9345bc60c78a8bef51": {
-                type: 1,
-                choice: {
-                    value: 2
-                }
+                votes: [{
+                    choice: {
+                        value: 2
+                    }
+                }]
             },
             "0x627306090abab3a6e1400e9345bc60c78a8bef52": {
-                type: 1,
-                choice: {
-                    value: 2
-                }
+                votes: [{
+                    choice: {
+                        value: 2
+                    }
+                }]
             }
         }
     };
@@ -296,22 +299,26 @@ module.exports = async function(callback) {
             pool2: {
                 admin: web3.eth.defaultAccount,
                 groups: ["D5", "D6", "NY"],
-                ballots: ["ballot1","ballot2","ballot3"]
+                ballots: ["ballot1","ballot2"]
             }
         },
         voters: {
             voter1: {
-                pool: "pool1",
+                pool: "pool2",
                 address: web3.eth.defaultAccount,
                 vote: encryptedStr
             }
         }
     };
 
-    let c = await doEndToEndElection(cfg);
-    printConfig(c);
-    callback();
-
+    try {
+        let c = await doEndToEndElection(cfg);
+        printConfig(c);
+        callback();
+    }catch(e){
+        console.error(e);
+        callback(e);
+    }
 };
 
 let printConfig = (cfg) => {

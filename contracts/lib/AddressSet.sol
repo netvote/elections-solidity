@@ -51,7 +51,7 @@ library AddressSet {
     function remove(SetData storage self, address a) public {
         if (self.entryExists[a]) {
             uint256 index = self.entryIndex[a];
-            // if not last entry, copy last entry into b's slot
+            // if not last entry, copy last entry into a's slot
             if (index < size(self) - 1) {
                 address lastEntry = self.entries[size(self)-1];
                 self.entries[index] = lastEntry;
