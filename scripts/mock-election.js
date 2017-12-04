@@ -50,28 +50,37 @@ let getVotesByGroup = async (ballot, group) => {
     return votes;
 };
 
-let setupConfig = async(config) => {
-    log("ELECTION:")
-
+// 1
+let createElection = async(config) => {
+    log("create election");
     let va = await VoteAllowance.new({from: config.netvote});
     await va.addVotes(config.account.owner, config.account.allowance, {from: config.netvote});
     config.contract = await Election.new(va.address, config.account.owner, config.allowUpdates, {from: config.admin });
     await va.addElection(config.contract.address, {from: config.account.owner});
+    return config;
+};
 
-    // SETUP BALLOTS
+// 2 - assumes election created
+let createBallots = async(config) => {
+    log("create ballots");
     for (let name in config.ballots) {
         if (config.ballots.hasOwnProperty(name)) {
             let ballotConfig = config.ballots[name];
             let admin = ballotConfig.admin;
             let ballot = await Ballot.new(config.contract.address, admin, ballotConfig.metadata, {from: config.admin});
+            await config.contract.addBallot(ballot.address, {from: config.admin});
             for(let i=0; i<ballotConfig.groups.length; i++){
-                await ballot.addGroup(ballotConfig.groups[i], {from: admin});
+                await ballot.addGroup(web3.fromAscii(ballotConfig.groups[i]), {from: admin});
             }
             config.ballots[name].contract = ballot;
         }
     }
+    return config;
+};
 
-    // SETUP POOLS
+// 3 - assumes election and ballots created
+let createPools = async(config) => {
+    log("create pools");
     for (let name in config.pools) {
         if (config.pools.hasOwnProperty(name)) {
             let poolConfig = config.pools[name];
@@ -84,13 +93,11 @@ let setupConfig = async(config) => {
                 await pool.addBallot(ballot.contract.address, {from: admin});
                 await ballot.contract.addPool(pool.address, {from: ballot.admin});
                 await config.contract.addPool(pool.address, {from: config.admin});
-
                 for(let g=0; g<poolConfig.groups.length; g++) {
-
                     let group = poolConfig.groups[g];
                     for(let j=0; j<ballot.groups.length; j++){
                         if(ballot.groups[j] === group) {
-                            await ballot.contract.addPoolToGroup(pool.address, group, {from: ballot.admin});
+                            await ballot.contract.addPoolToGroup(pool.address, web3.fromAscii(group), {from: ballot.admin});
                             break;
                         }
                     }
@@ -98,52 +105,96 @@ let setupConfig = async(config) => {
             }
         }
     }
+    return config;
+};
 
-    //ACTIVATE
-    config.contract.activate({from: config.admin});
+let activateElection = async(config) => {
+    log("activating election");
+    await config.contract.activate({from: config.admin});
+    return config;
+};
+
+let activateBallots = async(config) => {
+    log("activating ballots");
     for (let name in config.ballots) {
         if (config.ballots.hasOwnProperty(name)) {
             let ballot = config.ballots[name];
             await ballot.contract.activate({from: ballot.admin});
         }
     }
+    return config;
+};
+
+let activatePools = async(config) => {
+    log("activating pools");
     for (let name in config.pools) {
         if (config.pools.hasOwnProperty(name)) {
             let pool = config.pools[name];
             await pool.contract.activate({from: pool.admin});
         }
     }
+    return config;
+};
 
-    // VOTE
+let castVotes = async(config) => {
+    log("voting");
     for (let name in config.voters) {
         if (config.voters.hasOwnProperty(name)) {
             let voter = config.voters[name];
             let pool = config.pools[voter.pool].contract;
             await pool.register(voter.address, {from: config.registrar});
-            let vt = await pool.castVote(voter.vote, {from: voter.address});
-            console.log("VOTE="+vt.tx);
+            await pool.castVote(voter.vote, {from: voter.address});
         }
     }
+    return config;
+};
 
-    // CLOSE
+let closePools = async(config) => {
     for (let name in config.pools) {
         if (config.pools.hasOwnProperty(name)) {
             let pool = config.pools[name];
             await pool.contract.close({from: pool.admin});
         }
     }
+    return config;
+};
+
+let closeBallots = async(config) => {
     for (let name in config.ballots) {
         if (config.ballots.hasOwnProperty(name)) {
             let ballot = config.ballots[name];
             await ballot.contract.close({from: ballot.admin});
         }
     }
-    await config.contract.close({from: config.admin});
-    await config.contract.setPrivateKey("private key", {from: config.admin});
-
     return config;
 };
 
+let closeElection = async(config) => {
+    await config.contract.close({from: config.admin});
+    return config;
+};
+
+let doTransactions = async(transactions, config) => {
+    for(let tx of transactions) {
+        config = await tx(config);
+    }
+    return config;
+};
+
+let doEndToEndElection = async(config) => {
+    return await doTransactions([
+        createElection,
+        createBallots,
+        createPools,
+        activateElection,
+        activateBallots,
+        activatePools,
+        castVotes,
+        closePools,
+        closeBallots,
+        closeElection
+    ], config);
+};
 
 const encrypt = async (str) => {
     console.log("encrypting "+str);
@@ -240,7 +291,7 @@ module.exports = async function(callback) {
             pool1: {
                 admin: web3.eth.defaultAccount,
                 groups: ["D5", "D6", "NY"],
-                ballots: ["ballot1","ballot2"]
+                ballots: ["ballot1","ballot2","ballot3"]
             },
             pool2: {
                 admin: web3.eth.defaultAccount,
@@ -257,7 +308,7 @@ module.exports = async function(callback) {
         }
     };
 
-    let c = await setupConfig(cfg);
+    let c = await doEndToEndElection(cfg);
     printConfig(c);
     callback();
 
