@@ -21,6 +21,7 @@ pragma solidity ^0.4.17;
 
 import "../base/PoolRegistry.sol";
 
+
 contract Ballot is PoolRegistry {
     address public election;
     event BallotVote(address pool, address voter);

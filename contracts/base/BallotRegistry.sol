@@ -1,5 +1,8 @@
+pragma solidity ^0.4.17;
+
 import "../ElectionPhaseable.sol";
 import "../lib/AddressSet.sol";
+
 
 contract BallotRegistry is Adminable, ElectionPhaseable {
     using AddressSet for AddressSet.SetData;

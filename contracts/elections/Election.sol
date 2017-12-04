@@ -24,6 +24,7 @@ import "../base/BallotRegistry.sol";
 import "../base/PoolRegistry.sol";
 import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
 
+
 // Election
 // top-level structure for election
 contract Election is BallotRegistry, PoolRegistry, ReentrancyGuard {

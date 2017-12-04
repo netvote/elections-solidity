@@ -22,21 +22,15 @@ pragma solidity ^0.4.17;
 import "../ElectionPhaseable.sol";
 import "./Election.sol";
 import "./Ballot.sol";
+import "../base/BallotRegistry.sol";
 
 
-contract RegistrationPool is ElectionPhaseable {
+contract RegistrationPool is BallotRegistry {
     Election public election;
     event Vote(address voter);
     event UpdateVote(address voter);
     event RegisterVoter(address voter);
     event UnregisterVoter(address voter);
-
-    // map that lets us avoid adding duplicate ballots to ballot list
-    mapping (address => bool) public ballotExists;
-
-    // list of ballots where votes will be distributed
-    // note: ballot must also allow this pool
-    address[] ballots;
 
     // vote for each voter
     mapping (address => string) votes;
@@ -74,12 +68,12 @@ contract RegistrationPool is ElectionPhaseable {
     // returns true if pool can vote on all configured ballots
     function checkBallots() public constant returns (bool) {
         // ballots are configured
-        if ( ballots.length == 0) {
+        if ( ballotSet.size() == 0) {
             return false;
         }
         // all ballots have this pool
-        for (uint256 i = 0; i<ballots.length; i++) {
-            Ballot ballot = Ballot(ballots[i]);
+        for (uint256 i = 0; i<ballotSet.size(); i++) {
+            Ballot ballot = Ballot(ballotSet.getAt(i));
             if (!ballot.poolExists(this)) {
                 return false;
             }
@@ -89,10 +83,18 @@ contract RegistrationPool is ElectionPhaseable {
 
     // returns true if pool can vote on election
     function checkElection() public constant returns (bool) {
-        if ( election == address(0) ) {
+        if (election == address(0)) {
             return false;
         }
-        return election.poolExists(this);
+        if (!election.poolExists(this)) {
+            return false;
+        }
+        for (uint256 i = 0; i<ballotSet.size(); i++) {
+            if (!Ballot(ballotSet.getAt(i)).poolExists(this)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     // returns true if pool can vote on election
@@ -107,26 +109,10 @@ contract RegistrationPool is ElectionPhaseable {
         UnregisterVoter(v);
     }
 
-    // add a ballot to this pool
-    // note: ballot must also allow this pool
-    function addBallot(address bal) public building admin {
-        require(!ballotExists[bal]);
-        ballotExists[bal] = true;
-        ballots.push(bal);
-    }
-
     // get a particular voter's vote (only voter can read unless closed)
     function getVote(address voter) public constant returns (string) {
         require(isClosed() || msg.sender == voter);
         return votes[voter];
-    }
-
-    // reset the ballot list
-    function clearBallots() public building admin {
-        for (uint256 i = 0; i<ballots.length; i++) {
-            delete ballotExists[ballots[i]];
-        }
-        delete ballots;
     }
 
     // avoids allowing a duplicate vote
@@ -145,8 +131,8 @@ contract RegistrationPool is ElectionPhaseable {
     // for each ballot, cast vote for sender, store vote to pool
     function castVote(string vote) public voting notDuplicate registeredVoter {
         votes[msg.sender] = vote;
-        for (uint256 i = 0; i<ballots.length; i++) {
-            Ballot(ballots[i]).castVote(msg.sender);
+        for (uint256 i = 0; i<ballotSet.size(); i++) {
+            Ballot(ballotSet.getAt(i)).castVote(msg.sender);
         }
         election.castVote();
         Vote(msg.sender);
