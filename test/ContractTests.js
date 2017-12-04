@@ -251,8 +251,8 @@ contract('Election: Configuration TX', function (accounts) {
         let count = await config.contract.getBallotCount();
         assert.equal(count, 2);
 
-        let address1 = await config.contract.ballots(0);
-        let address2 = await config.contract.ballots(1);
+        let address1 = await config.contract.getBallot(0);
+        let address2 = await config.contract.getBallot(1);
 
         // last entry moved to front
         assert.equal(config.ballots["ballot3"].contract.address, address1);
@@ -265,8 +265,8 @@ contract('Election: Configuration TX', function (accounts) {
         let count = await config.contract.getBallotCount();
         assert.equal(count, 2);
 
-        let address1 = await config.contract.ballots(0);
-        let address2 = await config.contract.ballots(1);
+        let address1 = await config.contract.getBallot(0);
+        let address2 = await config.contract.getBallot(1);
 
         assert.equal(config.ballots["ballot1"].contract.address, address1);
         assert.equal(config.ballots["ballot3"].contract.address, address2);
@@ -278,8 +278,8 @@ contract('Election: Configuration TX', function (accounts) {
         let count = await config.contract.getBallotCount();
         assert.equal(count, 2);
 
-        let address1 = await config.contract.ballots(0);
-        let address2 = await config.contract.ballots(1);
+        let address1 = await config.contract.getBallot(0);
+        let address2 = await config.contract.getBallot(1);
 
         assert.equal(config.ballots["ballot1"].contract.address, address1);
         assert.equal(config.ballots["ballot2"].contract.address, address2);

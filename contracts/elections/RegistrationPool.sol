@@ -92,7 +92,7 @@ contract RegistrationPool is ElectionPhaseable {
         if ( election == address(0) ) {
             return false;
         }
-        return election.allowedPools(this);
+        return election.poolExists(this);
     }
 
     // returns true if pool can vote on election
