@@ -2,19 +2,8 @@ syntax = "proto3";
 package netvote;
 
 message VoteChoice {
-    enum Type {
-        SELECTION = 0;
-        WRITEIN = 1;
-        ABSTAIN = 2;
-    }
-
-    message VoteValue {
-        uint32 value = 1;
-        string value_str = 2;
-    }
-
-    Type type = 1;
-    VoteValue choice = 2;
+    uint32 selection = 1;
+    string write_in = 2;
 }
 
 message BallotVote {

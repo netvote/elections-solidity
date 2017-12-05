@@ -214,7 +214,6 @@ let doEndToEndElection = async(config) => {
 };
 
 const encrypt = async (str) => {
-    console.log("encrypting "+str);
     return new Promise((resolve, reject) => {
         crypto2.readPublicKey('scripts/public.pem', (err, pubKey) => {
             if(err){
@@ -241,27 +240,26 @@ module.exports = async function(callback) {
 
     let payload = {
         encryptionSeed: "123e4567-e89b-12d3-a456-426655440000",
-        ballot_votes: [
+        ballotVotes: [
             {
-                votes: [{
-                    choice: {
-                        value: 2
+                choices: [
+                    {
+                        selection: 1
+                    },
+                    {
+                        selection: 2
                     }
-                }]
+                ]
             },
             {
-                votes: [{
-                    choice: {
-                        value: 2
+                choices: [
+                    {
+                        writeIn: "John Doe"
+                    },
+                    {
+                        selection: 7
                     }
-                }]
-            },
-            {
-                votes: [{
-                    choice: {
-                        value: 2
-                    }
-                }]
+                ]
             }
         ]
     };
@@ -275,11 +273,6 @@ module.exports = async function(callback) {
     let vote = Vote.create(payload);
     let encodedVote = Vote.encode(vote).finish();
     let encryptedStr = await encrypt(encodedVote);
-
-    console.log(JSON.stringify({
-        payload: JSON.stringify(payload),
-        encrypted: encryptedStr
-    },null,"\t"));
 
     let cfg = {
         account: {
@@ -310,12 +303,12 @@ module.exports = async function(callback) {
         pools: {
             pool1: {
                 admin: web3.eth.defaultAccount,
-                groups: ["D5", "D6", "NY"],
+                groups: ["D5", "NY"],
                 ballots: ["ballot1","ballot2","ballot3"]
             },
             pool2: {
                 admin: web3.eth.defaultAccount,
-                groups: ["D5", "D6", "NY"],
+                groups: ["D6", "NY"],
                 ballots: ["ballot1","ballot2"]
             }
         },
