@@ -36,6 +36,8 @@ contract Ballot is PoolRegistry {
     // configuration
     Bytes32Set.SetData groupSet;
     mapping (bytes32 => AddressSet.SetData) groupPoolSet;
+    mapping (address => Bytes32Set.SetData) poolGroupSet;
+
     Election public election;
     string public metadataLocation;
 
@@ -126,16 +128,29 @@ contract Ballot is PoolRegistry {
 
     function removeGroup(bytes32 group) public building admin {
         groupSet.remove(group);
+        for (uint256 i = 0; i<poolSet.size(); i++) {
+            address p = poolSet.getAt(i);
+            poolGroupSet[p].remove(group);
+        }
     }
 
     function addGroup(bytes32 group) public building admin {
         groupSet.put(group);
     }
 
+    function getPoolGroupCount(address pool) constant public returns(uint256) {
+        return poolGroupSet[pool].size();
+    }
+
+    function getPoolGroupAt(address pool, uint256 index) constant public returns(bytes32) {
+        return poolGroupSet[pool].getAt(index);
+    }
+
     function addPoolToGroup(address pool, bytes32 group) public building admin {
         require(groupSet.contains(group));
         require(poolSet.contains(pool));
         groupPoolSet[group].put(pool);
+        poolGroupSet[pool].put(group);
     }
 
     function castVote(address voter) public voting validPool {
