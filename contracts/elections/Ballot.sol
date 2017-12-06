@@ -83,7 +83,7 @@ contract Ballot is PoolRegistry {
     }
 
     function addPool(address p) public building admin {
-        super.addPool(p);
+        poolSet.put(p);
         addPoolToGroup(p, GROUP_ALL);
     }
 

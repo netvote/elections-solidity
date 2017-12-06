@@ -34,29 +34,14 @@ let log = (msg) => {
     console.log(msg);
 };
 
-let getVotesByGroup = async (ballot, group) => {
-    let poolCount = await ballot.groupPoolCount(group);
-    let votes = [];
-    for(let i=0; i<poolCount; i++){
-        let p = await ballot.getGroupPool(group, i);
-        let voterCount = await ballot.getPoolVoterCount(p);
-        for(let j=0; j<voterCount;j++){
-            let v = await ballot.getPoolVoter(p, j);
-            let vt = await RegistrationPool.at(p).getVote(v);
-            votes.push(vt);
-        }
-    }
-    votes.sort();
-    return votes;
-};
-
 // 1
 let createElection = async(config) => {
     log("create election");
-    let va = await VoteAllowance.new({from: config.netvote});
-    await va.addVotes(config.account.owner, config.account.allowance, {from: config.netvote});
-    config.contract = await Election.new(va.address, config.account.owner, config.allowUpdates, {from: config.admin });
-    await va.addElection(config.contract.address, {from: config.account.owner});
+    let va = await VoteAllowance.new();
+    await va.addVotes(config.account.owner, config.account.allowance);
+    config.contract = await Election.new(va.address, config.account.owner, config.allowUpdates);
+    console.log("election: "+config.contract.address);
+    await va.addElection(config.contract.address);
     return config;
 };
 
@@ -67,11 +52,11 @@ let createBallots = async(config) => {
         if (config.ballots.hasOwnProperty(name)) {
             let ballotConfig = config.ballots[name];
             let admin = ballotConfig.admin;
-            let ballot = await Ballot.new(config.contract.address, admin, ballotConfig.metadata, {from: config.admin});
-            await config.contract.addBallot(ballot.address, {from: config.admin});
-            for(let i=0; i<ballotConfig.groups.length; i++){
-                await ballot.addGroup(web3.fromAscii(ballotConfig.groups[i]), {from: admin});
-            }
+            let ballot = await Ballot.new(config.contract.address, admin, ballotConfig.metadata);
+
+            console.log("ballot: "+ballot.address);
+
+            await config.contract.addBallot(ballot.address);
             config.ballots[name].contract = ballot;
         }
     }
@@ -84,24 +69,17 @@ let createPools = async(config) => {
     for (let name in config.pools) {
         if (config.pools.hasOwnProperty(name)) {
             let poolConfig = config.pools[name];
-            let admin = poolConfig.admin;
-            let pool = await RegistrationPool.new(config.contract.address, config.registrar, {from: admin});
+            let pool = await RegistrationPool.new(config.contract.address, config.registrar);
             config.pools[name].contract = pool;
+            console.log("pool: "+pool.address);
+
+            //add to election
+            await config.contract.addPool(pool.address);
 
             for(let i=0; i<poolConfig.ballots.length; i++) {
                 let ballot = config.ballots[poolConfig.ballots[i]];
-                await pool.addBallot(ballot.contract.address, {from: admin});
-                await ballot.contract.addPool(pool.address, {from: ballot.admin});
-                await config.contract.addPool(pool.address, {from: config.admin});
-                for(let g=0; g<poolConfig.groups.length; g++) {
-                    let group = poolConfig.groups[g];
-                    for(let j=0; j<ballot.groups.length; j++){
-                        if(ballot.groups[j] === group) {
-                            await ballot.contract.addPoolToGroup(pool.address, web3.fromAscii(group), {from: ballot.admin});
-                            break;
-                        }
-                    }
-                }
+                await pool.addBallot(ballot.contract.address);
+                await ballot.contract.addPool(pool.address);
             }
         }
     }
@@ -110,7 +88,7 @@ let createPools = async(config) => {
 
 let activateElection = async(config) => {
     log("activating election");
-    await config.contract.activate({from: config.admin});
+    await config.contract.activate();
     return config;
 };
 
@@ -119,7 +97,7 @@ let activateBallots = async(config) => {
     for (let name in config.ballots) {
         if (config.ballots.hasOwnProperty(name)) {
             let ballot = config.ballots[name];
-            await ballot.contract.activate({from: ballot.admin});
+            await ballot.contract.activate();
         }
     }
     return config;
@@ -130,7 +108,7 @@ let activatePools = async(config) => {
     for (let name in config.pools) {
         if (config.pools.hasOwnProperty(name)) {
             let pool = config.pools[name];
-            await pool.contract.activate({from: pool.admin});
+            await pool.contract.activate();
         }
     }
     return config;
@@ -142,28 +120,30 @@ let castVotes = async(config) => {
         if (config.voters.hasOwnProperty(name)) {
             let voter = config.voters[name];
             let pool = config.pools[voter.pool].contract;
-            await pool.register(voter.address, {from: config.registrar});
-            await pool.castVote(voter.vote, {from: voter.address});
+            await pool.register(voter.address);
+            await pool.castVote(voter.vote);
         }
     }
     return config;
 };
 
 let closePools = async(config) => {
+    log("closing pools");
     for (let name in config.pools) {
         if (config.pools.hasOwnProperty(name)) {
             let pool = config.pools[name];
-            await pool.contract.close({from: pool.admin});
+            await pool.contract.close();
         }
     }
     return config;
 };
 
 let closeBallots = async(config) => {
+    log("closing ballots");
     for (let name in config.ballots) {
         if (config.ballots.hasOwnProperty(name)) {
             let ballot = config.ballots[name];
-            await ballot.contract.close({from: ballot.admin});
+            await ballot.contract.close();
         }
     }
     return config;
@@ -171,7 +151,7 @@ let closeBallots = async(config) => {
 
 let closeElection = async(config) => {
     log("close election");
-    await config.contract.close({from: config.admin});
+    await config.contract.close();
     return config;
 };
 
@@ -184,7 +164,7 @@ let releasePrivateKey = async(config) => {
                 reject(err);
                 return
             }
-            await config.contract.setPrivateKey(privKey, {from: config.admin});
+            await config.contract.setPrivateKey(privKey);
             resolve(config);
         })
     });
@@ -192,7 +172,9 @@ let releasePrivateKey = async(config) => {
 
 let doTransactions = async(transactions, config) => {
     for(let tx of transactions) {
+        console.time("tx");
         config = await tx(config);
+        console.timeEnd("tx");
     }
     return config;
 };
@@ -258,16 +240,6 @@ module.exports = async function(callback) {
                         writeIn: "John Doe"
                     },
                     {
-                        selection: 7
-                    }
-                ]
-            },
-            {
-                choices: [
-                    {
-                        selection: 1
-                    },
-                    {
                         selection: 2
                     }
                 ]
@@ -275,119 +247,29 @@ module.exports = async function(callback) {
         ]
     });
 
-    let encryptedStr2 = await toEncryptedVote({
-        encryptionSeed: "123e4567-e89b-12d3-a456-426655440001",
-        ballotVotes: [
-            {
-                choices: [
-                    {
-                        writeIn: "John Doe"
-                    },
-                    {
-                        selection: 4
-                    }
-                ]
-            },
-            {
-                choices: [
-                    {
-                        selection: 2
-                    },
-                    {
-                        selection: 2
-                    }
-                ]
-            }
-        ]
-    });
-
-    console.log("str1="+encryptedStr1);
-
-    /*let twoVoteCfg = {
-        account: {
-            allowance: 2,
-            owner: web3.eth.defaultAccount
-        },
-        netvote: web3.eth.defaultAccount,
-        admin: web3.eth.defaultAccount,
-        allowUpdates: false,
-        registrar: web3.eth.defaultAccount,
-        ballots: {
-            ballot1: {
-                admin: web3.eth.defaultAccount,
-                metadata: "ipfs1",
-                groups: ["D5","D6"]
-            },
-            ballot2: {
-                admin: web3.eth.defaultAccount,
-                metadata: "ipfs2",
-                groups: ["D5"]
-            },
-            ballot3: {
-                admin: web3.eth.defaultAccount,
-                metadata: "ipfs3",
-                groups: ["D6"]
-            }
-        },
-        pools: {
-            pool1: {
-                admin: web3.eth.defaultAccount,
-                groups: ["D5"],
-                ballots: ["ballot1","ballot2"]
-            },
-            pool2: {
-                admin: web3.eth.defaultAccount,
-                groups: ["D6"],
-                ballots: ["ballot1","ballot3"]
-            }
-        },
-        voters: {
-            voter1: {
-                pool: "pool1",
-                address: web3.eth.accounts[1],
-                vote: encryptedStr1
-            },
-            voter2: {
-                pool: "pool2",
-                address: web3.eth.accounts[2],
-                vote: encryptedStr2
-            }
-        }
-    };
-*/
     let cfg = {
         account: {
             allowance: 2,
             owner: web3.eth.defaultAccount
         },
-        netvote: web3.eth.defaultAccount,
-        admin: web3.eth.defaultAccount,
         allowUpdates: false,
         registrar: web3.eth.defaultAccount,
         ballots: {
             ballot1: {
-                admin: web3.eth.defaultAccount,
                 metadata: "ipfs1",
-                groups: ["D5","D6"]
-            },
-            ballot2: {
-                admin: web3.eth.defaultAccount,
-                metadata: "ipfs2",
-                groups: ["D5"]
+                admin: web3.eth.defaultAccount
             }
         },
         pools: {
             pool1: {
-                admin: web3.eth.defaultAccount,
-                groups: ["D5"],
-                ballots: ["ballot1","ballot2"]
+                ballots: ["ballot1"]
             }
         },
         voters: {
             voter1: {
                 pool: "pool1",
-                address: web3.eth.defaultAccount,
-                vote: encryptedStr1
+                vote: encryptedStr1,
+                address: web3.eth.defaultAccount
             }
         }
     };
@@ -414,7 +296,6 @@ let printConfig = (cfg) => {
         if (cfg.pools.hasOwnProperty(name)) {
             output.pools[name] = {
                 address: cfg.pools[name].contract.address,
-                groups: cfg.pools[name].groups,
                 ballots: cfg.pools[name].ballots
             }
         }
@@ -424,7 +305,6 @@ let printConfig = (cfg) => {
         if (cfg.ballots.hasOwnProperty(name)) {
             output.ballots[name] = {
                 address: cfg.ballots[name].contract.address,
-                groups: cfg.ballots[name].groups
             }
         }
     }
