@@ -233,24 +233,25 @@ const encrypt = async (str) => {
     });
 };
 
-module.exports = async function(callback) {
-
+const toEncryptedVote = async (payload) => {
     let root = await protobuf.load("scripts/vote.proto");
     let Vote = root.lookupType("netvote.Vote");
+    let errMsg = Vote.verify(payload);
+    if (errMsg) {
+        console.error("invalid:"+errMsg);
+        throw Error(errMsg);
+    }
 
-    let payload = {
+    let vote = Vote.create(payload);
+    let encodedVote = Vote.encode(vote).finish();
+    return await encrypt(encodedVote);
+};
+
+module.exports = async function(callback) {
+
+    let encryptedStr1 = await toEncryptedVote({
         encryptionSeed: "123e4567-e89b-12d3-a456-426655440000",
         ballotVotes: [
-            {
-                choices: [
-                    {
-                        selection: 1
-                    },
-                    {
-                        selection: 2
-                    }
-                ]
-            },
             {
                 choices: [
                     {
@@ -260,19 +261,47 @@ module.exports = async function(callback) {
                         selection: 7
                     }
                 ]
+            },
+            {
+                choices: [
+                    {
+                        selection: 1
+                    },
+                    {
+                        selection: 2
+                    }
+                ]
             }
         ]
-    };
+    });
 
-    let errMsg = Vote.verify(payload);
-    if (errMsg) {
-        console.error("invalid:"+errMsg);
-        callback(errMsg);
-    }
+    let encryptedStr2 = await toEncryptedVote({
+        encryptionSeed: "123e4567-e89b-12d3-a456-426655440001",
+        ballotVotes: [
+            {
+                choices: [
+                    {
+                        writeIn: "John Doe"
+                    },
+                    {
+                        selection: 4
+                    }
+                ]
+            },
+            {
+                choices: [
+                    {
+                        selection: 2
+                    },
+                    {
+                        selection: 2
+                    }
+                ]
+            }
+        ]
+    });
 
-    let vote = Vote.create(payload);
-    let encodedVote = Vote.encode(vote).finish();
-    let encryptedStr = await encrypt(encodedVote);
+    console.log("str1="+encryptedStr1);
 
     let cfg = {
         account: {
@@ -287,7 +316,7 @@ module.exports = async function(callback) {
             ballot1: {
                 admin: web3.eth.defaultAccount,
                 metadata: "ipfs1",
-                groups: ["D5","D6","NY"]
+                groups: ["D5","D6"]
             },
             ballot2: {
                 admin: web3.eth.defaultAccount,
@@ -303,20 +332,25 @@ module.exports = async function(callback) {
         pools: {
             pool1: {
                 admin: web3.eth.defaultAccount,
-                groups: ["D5", "NY"],
-                ballots: ["ballot1","ballot2","ballot3"]
+                groups: ["D5"],
+                ballots: ["ballot1","ballot2"]
             },
             pool2: {
                 admin: web3.eth.defaultAccount,
-                groups: ["D6", "NY"],
-                ballots: ["ballot1","ballot2"]
+                groups: ["D6"],
+                ballots: ["ballot1","ballot3"]
             }
         },
         voters: {
             voter1: {
                 pool: "pool1",
-                address: web3.eth.defaultAccount,
-                vote: encryptedStr
+                address: web3.eth.accounts[1],
+                vote: encryptedStr1
+            },
+            voter2: {
+                pool: "pool2",
+                address: web3.eth.accounts[2],
+                vote: encryptedStr2
             }
         }
     };
