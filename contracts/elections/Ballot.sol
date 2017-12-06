@@ -21,6 +21,8 @@ pragma solidity ^0.4.17;
 
 import "../links/PoolRegistry.sol";
 import "../lib/Bytes32Set.sol";
+import "./Election.sol";
+import "./RegistrationPool.sol";
 
 
 contract Ballot is PoolRegistry {
@@ -29,10 +31,12 @@ contract Ballot is PoolRegistry {
     // events
     event BallotVote(address pool, address voter);
 
+    bytes32 constant GROUP_ALL = "ALL";
+
     // configuration
     Bytes32Set.SetData groupSet;
     mapping (bytes32 => AddressSet.SetData) groupPoolSet;
-    address public election;
+    Election public election;
     string public metadataLocation;
 
     // state
@@ -43,9 +47,11 @@ contract Ballot is PoolRegistry {
     mapping (address => address[]) poolVoters;
 
     function Ballot(address electionAddress, address ownerAddress, string location) public {
-        election = electionAddress;
+        require(electionAddress != address(0));
+        election = Election(electionAddress);
         owner = ownerAddress;
         metadataLocation = location;
+        groupSet.put(GROUP_ALL);
     }
 
     modifier validPool() {
@@ -74,9 +80,40 @@ contract Ballot is PoolRegistry {
         return poolVoters[pool][i];
     }
 
-    function checkConfig() public constant returns (bool) {
-        //TODO: implement
+    function addPool(address p) public building admin {
+        super.addPool(p);
+        addPoolToGroup(p, GROUP_ALL);
+    }
+
+    function checkElection() public constant returns (bool) {
+        return election != address(0) && election.ballotExists(this);
+    }
+
+    function checkPools() public constant returns (bool) {
+        // there must be at least one pool set
+        if (poolSet.size() == 0) {
+            return false;
+        }
+        for (uint256 i = 0; i<poolSet.size(); i++) {
+            // pool must reference this ballot
+            if (!RegistrationPool(poolSet.getAt(i)).ballotExists(this)) {
+                return false;
+            }
+            // pool must point to same election
+            if (RegistrationPool(poolSet.getAt(i)).election() != election) {
+                return false;
+            }
+            // election has the pool
+            if (!election.poolExists(poolSet.getAt(i))) {
+                return false;
+            }
+            //TODO: check that pool has group assigned
+        }
         return true;
+    }
+
+    function checkConfig() public constant returns (bool) {
+        return checkElection() && checkPools();
     }
 
     function getGroupCount() constant public returns (uint256) {

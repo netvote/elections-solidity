@@ -335,6 +335,13 @@ contract('Simple Election', function (accounts) {
         assert.equal(votes[0], config.voters.voter1.vote);
     });
 
+    it("should get 1 ALL vote for ballot1", async function() {
+        let ballot = config.ballots.ballot1.contract;
+        let votes = await getVotesByGroup(ballot, "ALL");
+        assert.equal(votes.length, 1);
+        assert.equal(votes[0], config.voters.voter1.vote);
+    });
+
 });
 
 contract('Hierarchical Ballots, Two Pools, Two Voters', function (accounts) {
@@ -392,6 +399,14 @@ contract('Hierarchical Ballots, Two Pools, Two Voters', function (accounts) {
                 }
             }
         });
+    });
+
+    it("should get 2 ALL votes for ballot1", async function() {
+        let ballot = config.ballots.ballot1.contract;
+        let votes = await getVotesByGroup(ballot, "ALL");
+        assert.equal(votes.length, 2);
+        assert.equal(votes[0], config.voters.voter1.vote);
+        assert.equal(votes[1], config.voters.voter2.vote);
     });
 
     it("should get 2 NY votes for ballot1", async function() {
@@ -483,6 +498,14 @@ contract('Two Overlapping Ballots, Two Pools, Two Voters', function (accounts) {
                 }
         });
 
+    });
+
+    it("should get 2 ALL votes for ballot1", async function() {
+        let ballot = config.ballots.ballot1.contract;
+        let votes = await getVotesByGroup(ballot, "ALL");
+        assert.equal(votes.length, 2);
+        assert.equal(votes[0], config.voters.voter1.vote);
+        assert.equal(votes[1], config.voters.voter2.vote);
     });
 
     it("should get 2 NY votes for ballot1", async function() {
