@@ -34,7 +34,7 @@ let getVotesByGroup = async (ballot, group) => {
         let voterCount = await ballot.getPoolVoterCount(p);
         for(let j=0; j<voterCount;j++){
             let v = await ballot.getPoolVoter(p, j);
-            let vt = await RegistrationPool.at(p).getVote(v);
+            let vt = await RegistrationPool.at(p).votes(v);
             votes.push(vt);
         }
     }

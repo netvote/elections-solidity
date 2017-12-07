@@ -27,27 +27,11 @@ const crypto2 = require('crypto2');
 
 
 if(!web3.eth.defaultAccount){
-    web3.eth.defaultAccount = "0x74ecF4529B8D0FB84dbCF512B6f4cbC0fFADD690";
+    web3.eth.defaultAccount = web3.eth.accounts[0];
 }
 
 let log = (msg) => {
     console.log(msg);
-};
-
-let getVotesByGroup = async (ballot, group) => {
-    let poolCount = await ballot.groupPoolCount(group);
-    let votes = [];
-    for(let i=0; i<poolCount; i++){
-        let p = await ballot.getGroupPool(group, i);
-        let voterCount = await ballot.getPoolVoterCount(p);
-        for(let j=0; j<voterCount;j++){
-            let v = await ballot.getPoolVoter(p, j);
-            let vt = await RegistrationPool.at(p).getVote(v);
-            votes.push(vt);
-        }
-    }
-    votes.sort();
-    return votes;
 };
 
 // 1

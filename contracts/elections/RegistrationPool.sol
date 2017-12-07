@@ -34,7 +34,7 @@ contract RegistrationPool is BallotRegistry {
     event UnregisterVoter(address voter);
 
     // vote for each voter
-    mapping (address => string) votes;
+    mapping (address => string) public votes;
 
     // map to prevent duplicate votes
     mapping (address => bool) voterVoted;
@@ -121,12 +121,6 @@ contract RegistrationPool is BallotRegistry {
         require(registeredVoters[v] && !voterVoted[v]);
         delete registeredVoters[v];
         UnregisterVoter(v);
-    }
-
-    // get a particular voter's vote (only voter can read unless closed)
-    function getVote(address voter) public constant returns (string) {
-        require(isClosed() || msg.sender == voter);
-        return votes[voter];
     }
 
     // avoids allowing a duplicate vote
