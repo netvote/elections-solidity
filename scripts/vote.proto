@@ -2,8 +2,10 @@ syntax = "proto3";
 package netvote;
 
 message VoteChoice {
-    uint32 selection = 1;
-    string write_in = 2;
+    oneof choice {
+        uint32 selection = 1;
+        string write_in = 2;
+    }
 }
 
 message BallotVote {
@@ -11,6 +13,6 @@ message BallotVote {
 }
 
 message Vote {
-    string encryption_seed = 1;
+    uint64 encryption_seed = 1;
     repeated BallotVote ballot_votes = 2;
 }

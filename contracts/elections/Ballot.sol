@@ -29,8 +29,9 @@ contract Ballot is PoolRegistry {
     using Bytes32Set for Bytes32Set.SetData;
 
     // events
-    event BallotVote(address pool, address voter);
+    event BallotVote(address pool, bytes32 voteId);
 
+    // default group (popular vote)
     bytes32 constant GROUP_ALL = "ALL";
 
     // configuration
@@ -43,10 +44,10 @@ contract Ballot is PoolRegistry {
 
     // state
     // map of voters to prevent duplicates
-    mapping (address => bool) voterVoted;
+    mapping (bytes32 => bool) voterVoted;
 
     // pools to the list of voters
-    mapping (address => address[]) poolVoters;
+    mapping (address => bytes32[]) poolVoters;
 
     function Ballot(address electionAddress, address ownerAddress, string location) public {
         require(electionAddress != address(0));
@@ -78,10 +79,11 @@ contract Ballot is PoolRegistry {
     }
 
     // gets voter address by pool and index (for iteration)
-    function getPoolVoter(address pool, uint256 i) constant public returns(address) {
+    function getPoolVoter(address pool, uint256 i) constant public returns(bytes32) {
         return poolVoters[pool][i];
     }
 
+    // adds a pool to the ballot
     function addPool(address p) public building admin {
         poolSet.put(p);
         addPoolToGroup(p, GROUP_ALL);
@@ -109,7 +111,6 @@ contract Ballot is PoolRegistry {
             if (!election.poolExists(poolSet.getAt(i))) {
                 return false;
             }
-            //TODO: check that pool has group assigned
         }
         return true;
     }
@@ -153,10 +154,10 @@ contract Ballot is PoolRegistry {
         poolGroupSet[pool].put(group);
     }
 
-    function castVote(address voter) public voting validPool {
-        require(!voterVoted[voter]);
-        voterVoted[voter] = true;
-        poolVoters[msg.sender].push(voter);
-        BallotVote(msg.sender, voter);
+    function castVote(bytes32 voteId) public voting validPool {
+        require(!voterVoted[voteId]);
+        voterVoted[voteId] = true;
+        poolVoters[msg.sender].push(voteId);
+        BallotVote(msg.sender, voteId);
     }
 }

@@ -23,8 +23,10 @@ let RegistrationPool = artifacts.require("RegistrationPool");
 let VoteAllowance = artifacts.require("VoteAllowance");
 
 const protobuf = require("protobufjs");
-const crypto2 = require('crypto2');
+const crypto = require('crypto');
+const algorithm = "aes-256-cbc";
 
+const testkey = "123e4567e89b12d3a456426655440000";
 
 if(!web3.eth.defaultAccount){
     web3.eth.defaultAccount = web3.eth.accounts[0];
@@ -69,7 +71,7 @@ let createPools = async(config) => {
         if (config.pools.hasOwnProperty(name)) {
             let poolConfig = config.pools[name];
             let admin = poolConfig.admin;
-            let pool = await RegistrationPool.new(config.contract.address, config.registrar, {from: admin});
+            let pool = await RegistrationPool.new(config.contract.address, config.gateway, {from: admin});
             config.pools[name].contract = pool;
 
             for(let i=0; i<poolConfig.ballots.length; i++) {
@@ -126,8 +128,7 @@ let castVotes = async(config) => {
         if (config.voters.hasOwnProperty(name)) {
             let voter = config.voters[name];
             let pool = config.pools[voter.pool].contract;
-            await pool.register(voter.address, {from: config.registrar});
-            await pool.castVote(voter.vote, {from: voter.address});
+            await pool.castVote(voter.address+"", voter.vote, {from: config.gateway});
         }
     }
     return config;
@@ -161,17 +162,8 @@ let closeElection = async(config) => {
 
 let releasePrivateKey = async(config) => {
     log("release key");
-    return new Promise((resolve, reject) => {
-        crypto2.readPrivateKey("scripts/private.pem", async (err, privKey) => {
-            if(err){
-                console.error("error loading key: "+err);
-                reject(err);
-                return
-            }
-            await config.contract.setPrivateKey(privKey, {from: config.admin});
-            resolve(config);
-        })
-    });
+    await config.contract.setPrivateKey(testkey, {from: config.admin});
+    return config;
 };
 
 let doTransactions = async(transactions, config) => {
@@ -197,27 +189,14 @@ let doEndToEndElection = async(config) => {
     ], config);
 };
 
-const encrypt = async (str) => {
-    return new Promise((resolve, reject) => {
-        crypto2.readPublicKey('scripts/public.pem', (err, pubKey) => {
-            if(err){
-                console.error("error loading key: "+err);
-                reject(err);
-                return
-            }
-            crypto2.encrypt.rsa(str, pubKey, (err, encrypted) => {
-                if(err){
-                    console.error("error encrypting: "+err);
-                    reject(err);
-                    return
-                }
-                resolve(encrypted);
-            })
-        });
-    });
-};
+function encrypt(text) {
+    let cipher = crypto.createCipher(algorithm, testkey);
+    let encrypted = cipher.update(text, "utf8", "base64");
+    encrypted += cipher.final("base64");
+    return encrypted;
+}
 
-const toEncryptedVote = async (payload) => {
+const toEncodedVote = async (payload) => {
     let root = await protobuf.load("scripts/vote.proto");
     let Vote = root.lookupType("netvote.Vote");
     let errMsg = Vote.verify(payload);
@@ -227,25 +206,36 @@ const toEncryptedVote = async (payload) => {
     }
 
     let vote = Vote.create(payload);
-    let encodedVote = Vote.encode(vote).finish();
-    return await encrypt(encodedVote);
+    return Vote.encode(vote).finish();
 };
+
+const encode = (buff, enc)=>{
+    let str = buff.toString(enc);
+    console.log(enc+": "+str+" ("+str.length+")");
+    return str;
+};
+
+const toEncryptedVote = async (payload) => {
+    let encodedVote = await toEncodedVote(payload);
+    console.log("plain:"+encodedVote);
+    encode(encodedVote, "utf8");
+    encode(encodedVote, "ascii");
+    encode(encodedVote, "hex");
+    encode(encodedVote, "base64");
+    return encrypt(encodedVote);
+};
+
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min)) + min;
+}
 
 module.exports = async function(callback) {
 
     let encryptedStr1 = await toEncryptedVote({
-        encryptionSeed: "123e4567-e89b-12d3-a456-426655440000",
+        encryptionSeed: getRandomInt(0,2000000),
         ballotVotes: [
-            {
-                choices: [
-                    {
-                        writeIn: "John Doe"
-                    },
-                    {
-                        selection: 7
-                    }
-                ]
-            },
             {
                 choices: [
                     {
@@ -253,29 +243,27 @@ module.exports = async function(callback) {
                     },
                     {
                         selection: 2
-                    }
-                ]
-            }
-        ]
-    });
-
-    let encryptedStr2 = await toEncryptedVote({
-        encryptionSeed: "123e4567-e89b-12d3-a456-426655440001",
-        ballotVotes: [
-            {
-                choices: [
-                    {
-                        writeIn: "John Doe"
                     },
                     {
                         selection: 4
-                    }
-                ]
-            },
-            {
-                choices: [
+                    },
                     {
                         selection: 2
+                    },
+                    {
+                        selection: 8
+                    },
+                    {
+                        selection: 2
+                    },
+                    {
+                        selection: 6
+                    },
+                    {
+                        selection: 5
+                    },
+                    {
+                        selection: 6
                     },
                     {
                         selection: 2
@@ -285,60 +273,8 @@ module.exports = async function(callback) {
         ]
     });
 
-    console.log("str1="+encryptedStr1);
 
-    /*let twoVoteCfg = {
-        account: {
-            allowance: 2,
-            owner: web3.eth.defaultAccount
-        },
-        netvote: web3.eth.defaultAccount,
-        admin: web3.eth.defaultAccount,
-        allowUpdates: false,
-        registrar: web3.eth.defaultAccount,
-        ballots: {
-            ballot1: {
-                admin: web3.eth.defaultAccount,
-                metadata: "ipfs1",
-                groups: ["D5","D6"]
-            },
-            ballot2: {
-                admin: web3.eth.defaultAccount,
-                metadata: "ipfs2",
-                groups: ["D5"]
-            },
-            ballot3: {
-                admin: web3.eth.defaultAccount,
-                metadata: "ipfs3",
-                groups: ["D6"]
-            }
-        },
-        pools: {
-            pool1: {
-                admin: web3.eth.defaultAccount,
-                groups: ["D5"],
-                ballots: ["ballot1","ballot2"]
-            },
-            pool2: {
-                admin: web3.eth.defaultAccount,
-                groups: ["D6"],
-                ballots: ["ballot1","ballot3"]
-            }
-        },
-        voters: {
-            voter1: {
-                pool: "pool1",
-                address: web3.eth.accounts[1],
-                vote: encryptedStr1
-            },
-            voter2: {
-                pool: "pool2",
-                address: web3.eth.accounts[2],
-                vote: encryptedStr2
-            }
-        }
-    };
-*/
+    console.log("encrypted="+encryptedStr1+" ("+encryptedStr1.length+")");
     let cfg = {
         account: {
             allowance: 2,
@@ -347,24 +283,19 @@ module.exports = async function(callback) {
         netvote: web3.eth.defaultAccount,
         admin: web3.eth.defaultAccount,
         allowUpdates: false,
-        registrar: web3.eth.defaultAccount,
+        gateway: web3.eth.defaultAccount,
         ballots: {
             ballot1: {
                 admin: web3.eth.defaultAccount,
                 metadata: "ipfs1",
-                groups: ["D5","D6"]
-            },
-            ballot2: {
-                admin: web3.eth.defaultAccount,
-                metadata: "ipfs2",
-                groups: ["D5"]
+                groups: []
             }
         },
         pools: {
             pool1: {
                 admin: web3.eth.defaultAccount,
-                groups: ["D5"],
-                ballots: ["ballot1","ballot2"]
+                groups: [],
+                ballots: ["ballot1"]
             }
         },
         voters: {
@@ -416,4 +347,5 @@ let printConfig = (cfg) => {
     output.voters = cfg.voters;
 
     log(JSON.stringify(output, null, '\t'));
+    console.log("RegistrationPool.at('"+output.pools["pool1"].address+"').votes('"+output.voters["voter1"].address+"')")
 };

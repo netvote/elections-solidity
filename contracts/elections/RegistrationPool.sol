@@ -28,44 +28,27 @@ contract RegistrationPool is BallotRegistry {
     Election public election;
 
     // events
-    event Vote(address voter);
-    event UpdateVote(address voter);
-    event RegisterVoter(address voter);
-    event UnregisterVoter(address voter);
+    event Vote(bytes32 voteId);
+    event UpdateVote(bytes32 voteId);
 
-    // vote for each voter
-    mapping (address => string) public votes;
+    // voteId to vote map
+    mapping (bytes32 => string) public votes;
 
     // map to prevent duplicate votes
-    mapping (address => bool) voterVoted;
-
-    // map to record whether voter is registered
-    mapping (address => bool) registeredVoters;
+    mapping (bytes32 => bool) voteIdVoted;
 
     address[] ballots;
 
-    address registrar;
+    address public gateway;
 
-    function RegistrationPool(address el, address reg) public {
+    function RegistrationPool(address el, address gw) public {
         election = Election(el);
-        registrar = reg;
+        gateway = gw;
     }
 
-    modifier onlyRegistrar() {
-        require(msg.sender == registrar);
+    modifier onlyGateway() {
+        require(msg.sender == gateway);
         _;
-    }
-
-    modifier registeredVoter() {
-        require(registeredVoters[msg.sender]);
-        _;
-    }
-
-    // register a voter
-    function register(address v) public onlyRegistrar {
-        require(!registeredVoters[v]);
-        registeredVoters[v] = true;
-        RegisterVoter(v);
     }
 
     // returns true if pool can vote on all configured ballots
@@ -116,17 +99,10 @@ contract RegistrationPool is BallotRegistry {
         super.activate();
     }
 
-    // only can be unregistered if not already voted
-    function unregister(address v) public admin {
-        require(registeredVoters[v] && !voterVoted[v]);
-        delete registeredVoters[v];
-        UnregisterVoter(v);
-    }
-
     // avoids allowing a duplicate vote
-    modifier notDuplicate() {
-        require(!voterVoted[msg.sender]);
-        voterVoted[msg.sender] = true;
+    modifier notDuplicate(bytes32 voteId) {
+        require(!voteIdVoted[voteId]);
+        voteIdVoted[voteId] = true;
         _;
     }
 
@@ -137,19 +113,19 @@ contract RegistrationPool is BallotRegistry {
     }
 
     // for each ballot, cast vote for sender, store vote to pool
-    function castVote(string vote) public voting notDuplicate registeredVoter {
-        votes[msg.sender] = vote;
+    function castVote(bytes32 voteId, string vote) public voting notDuplicate(voteId) onlyGateway {
+        votes[voteId] = vote;
         for (uint256 i = 0; i<ballots.length; i++) {
-            Ballot(ballots[i]).castVote(msg.sender);
+            Ballot(ballots[i]).castVote(voteId);
         }
         election.castVote();
-        Vote(msg.sender);
+        Vote(voteId);
     }
 
     // voter can update their vote if election allows it
-    function updateVote(string vote) public voting updatesAllowed {
-        require(voterVoted[msg.sender]);
-        votes[msg.sender] = vote;
-        UpdateVote(msg.sender);
+    function updateVote(bytes32 voteId, string vote) public voting updatesAllowed onlyGateway {
+        require(voteIdVoted[voteId]);
+        votes[voteId] = vote;
+        UpdateVote(voteId);
     }
 }

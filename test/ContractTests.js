@@ -21,6 +21,7 @@ let Election = artifacts.require("Election");
 let Ballot = artifacts.require("Ballot");
 let RegistrationPool = artifacts.require("RegistrationPool");
 let VoteAllowance = artifacts.require("VoteAllowance");
+const Web3Utils = require('web3-utils');
 
 let log = (msg) => {
     //console.log(msg);
@@ -77,7 +78,7 @@ let createPools = async(config) => {
         if (config.pools.hasOwnProperty(name)) {
             let poolConfig = config.pools[name];
             let admin = poolConfig.admin;
-            let pool = await RegistrationPool.new(config.contract.address, config.registrar, {from: admin});
+            let pool = await RegistrationPool.new(config.contract.address, config.gateway, {from: admin});
             config.pools[name].contract = pool;
 
             for(let i=0; i<poolConfig.ballots.length; i++) {
@@ -134,8 +135,7 @@ let castVotes = async(config) => {
         if (config.voters.hasOwnProperty(name)) {
             let voter = config.voters[name];
             let pool = config.pools[voter.pool].contract;
-            await pool.register(voter.address, {from: config.registrar});
-            await pool.castVote(voter.vote, {from: voter.address});
+            await pool.castVote(voter.address+"", voter.vote, {from: config.gateway});
         }
     }
     return config;
@@ -189,6 +189,10 @@ let doEndToEndElection = async(config) => {
     ], config);
 };
 
+const assertVote = (actual, expected) => {
+    assert.equal(actual, expected);
+};
+
 contract('Election: Configuration TX', function (accounts) {
     let config;
 
@@ -201,7 +205,7 @@ contract('Election: Configuration TX', function (accounts) {
             netvote: accounts[0],
             admin: accounts[1],
             allowUpdates: false,
-            registrar: accounts[8],
+            gateway: accounts[8],
             ballots: {
                 ballot1: {
                     admin: accounts[2],
@@ -303,7 +307,7 @@ contract('Simple Election', function (accounts) {
             netvote: accounts[0],
             admin: accounts[1],
             allowUpdates: false,
-            registrar: accounts[8],
+            gateway: accounts[8],
             ballots: {
                 ballot1: {
                     admin: accounts[2],
@@ -332,14 +336,14 @@ contract('Simple Election', function (accounts) {
         let ballot = config.ballots.ballot1.contract;
         let votes = await getVotesByGroup(ballot, "US");
         assert.equal(votes.length, 1);
-        assert.equal(votes[0], config.voters.voter1.vote);
+        assertVote(votes[0], config.voters.voter1.vote);
     });
 
     it("should get 1 ALL vote for ballot1", async function() {
         let ballot = config.ballots.ballot1.contract;
         let votes = await getVotesByGroup(ballot, "ALL");
         assert.equal(votes.length, 1);
-        assert.equal(votes[0], config.voters.voter1.vote);
+        assertVote(votes[0], config.voters.voter1.vote);
     });
 
 });
@@ -356,7 +360,7 @@ contract('Hierarchical Ballots, Two Pools, Two Voters', function (accounts) {
             netvote: accounts[0],
             admin: accounts[1],
             allowUpdates: false,
-            registrar: accounts[8],
+            gateway: accounts[8],
             ballots: {
                 ballot1: {
                     admin: accounts[2],
@@ -405,44 +409,44 @@ contract('Hierarchical Ballots, Two Pools, Two Voters', function (accounts) {
         let ballot = config.ballots.ballot1.contract;
         let votes = await getVotesByGroup(ballot, "ALL");
         assert.equal(votes.length, 2);
-        assert.equal(votes[0], config.voters.voter1.vote);
-        assert.equal(votes[1], config.voters.voter2.vote);
+        assertVote(votes[0], config.voters.voter1.vote);
+        assertVote(votes[1], config.voters.voter2.vote);
     });
 
     it("should get 2 NY votes for ballot1", async function() {
         let ballot = config.ballots.ballot1.contract;
         let votes = await getVotesByGroup(ballot, "NY");
         assert.equal(votes.length, 2);
-        assert.equal(votes[0], config.voters.voter1.vote);
-        assert.equal(votes[1], config.voters.voter2.vote);
+        assertVote(votes[0], config.voters.voter1.vote);
+        assertVote(votes[1], config.voters.voter2.vote);
     });
 
     it("should get 1 D5 votes for ballot1", async function() {
         let ballot = config.ballots.ballot1.contract;
         let votes = await getVotesByGroup(ballot, "D5");
         assert.equal(votes.length, 1);
-        assert.equal(votes[0], config.voters.voter1.vote);
+        assertVote(votes[0], config.voters.voter1.vote);
     });
 
     it("should get 1 D6 votes for ballot1", async function() {
         let ballot = config.ballots.ballot1.contract;
         let votes = await getVotesByGroup(ballot, "D6");
         assert.equal(votes.length, 1);
-        assert.equal(votes[0], config.voters.voter2.vote);
+        assertVote(votes[0], config.voters.voter2.vote);
     });
 
     it("should get 1 D5 votes for ballot2", async function() {
         let ballot = config.ballots.ballot2.contract;
         let votes = await getVotesByGroup(ballot, "D5");
         assert.equal(votes.length, 1);
-        assert.equal(votes[0], config.voters.voter1.vote);
+        assertVote(votes[0], config.voters.voter1.vote);
     });
 
     it("should get 1 D6 votes for ballot3", async function() {
         let ballot = config.ballots.ballot3.contract;
         let votes = await getVotesByGroup(ballot, "D6");
         assert.equal(votes.length, 1);
-        assert.equal(votes[0], config.voters.voter2.vote);
+        assertVote(votes[0], config.voters.voter2.vote);
     });
 });
 
@@ -459,7 +463,7 @@ contract('Two Overlapping Ballots, Two Pools, Two Voters', function (accounts) {
                 netvote: accounts[0],
                 admin: accounts[1],
                 allowUpdates: false,
-                registrar: accounts[8],
+                gateway: accounts[8],
                 ballots: {
                     ballot1: {
                         admin: accounts[2],
@@ -504,52 +508,52 @@ contract('Two Overlapping Ballots, Two Pools, Two Voters', function (accounts) {
         let ballot = config.ballots.ballot1.contract;
         let votes = await getVotesByGroup(ballot, "ALL");
         assert.equal(votes.length, 2);
-        assert.equal(votes[0], config.voters.voter1.vote);
-        assert.equal(votes[1], config.voters.voter2.vote);
+        assertVote(votes[0], config.voters.voter1.vote);
+        assertVote(votes[1], config.voters.voter2.vote);
     });
 
     it("should get 2 NY votes for ballot1", async function() {
         let ballot = config.ballots.ballot1.contract;
         let votes = await getVotesByGroup(ballot, "NY");
         assert.equal(votes.length, 2);
-        assert.equal(votes[0], config.voters.voter1.vote);
-        assert.equal(votes[1], config.voters.voter2.vote);
+        assertVote(votes[0], config.voters.voter1.vote);
+        assertVote(votes[1], config.voters.voter2.vote);
     });
 
     it("should get 2 NY votes for ballot2", async function() {
         let ballot = config.ballots.ballot2.contract;
         let votes = await getVotesByGroup(ballot, "NY");
         assert.equal(votes.length, 2);
-        assert.equal(votes[0], config.voters.voter1.vote);
-        assert.equal(votes[1], config.voters.voter2.vote);
+        assertVote(votes[0], config.voters.voter1.vote);
+        assertVote(votes[1], config.voters.voter2.vote);
     });
 
     it("should get 1 D5 vote for ballot1", async function() {
         let ballot = config.ballots.ballot1.contract;
         let votes = await getVotesByGroup(ballot, "D5");
         assert.equal(votes.length, 1);
-        assert.equal(votes[0], config.voters.voter1.vote);
+        assertVote(votes[0], config.voters.voter1.vote);
     });
 
     it("should get 1 D6 vote for ballot1", async function() {
         let ballot = config.ballots.ballot1.contract;
         let votes = await getVotesByGroup(ballot, "D6");
         assert.equal(votes.length, 1);
-        assert.equal(votes[0], config.voters.voter2.vote);
+        assertVote(votes[0], config.voters.voter2.vote);
     });
 
     it("should get 1 D5 vote for ballot2", async function() {
         let ballot = config.ballots.ballot2.contract;
         let votes = await getVotesByGroup(ballot, "D5");
         assert.equal(votes.length, 1);
-        assert.equal(votes[0], config.voters.voter1.vote);
+        assertVote(votes[0], config.voters.voter1.vote);
     });
 
     it("should get 1 D6 vote for ballot2", async function() {
         let ballot = config.ballots.ballot2.contract;
         let votes = await getVotesByGroup(ballot, "D6");
         assert.equal(votes.length, 1);
-        assert.equal(votes[0], config.voters.voter2.vote);
+        assertVote(votes[0], config.voters.voter2.vote);
     });
 
 
