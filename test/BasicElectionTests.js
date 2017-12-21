@@ -87,6 +87,49 @@ let doEndToEndElection = async(config) => {
     ], config);
 };
 
+contract('Unactivated Election', function (accounts) {
+    let config;
+
+    before(async () => {
+        let basicConfig = {
+            account: {
+                allowance: 3,
+                owner: accounts[0]
+            },
+            netvote: accounts[1],
+            admin: accounts[2],
+            allowUpdates: false,
+            gateway: accounts[3],
+            encryptionKey: "testkey",
+            metadata: "ipfs1",
+            voters: {
+                voter1: {
+                    voteId: "vote-id-1",
+                    vote: "encrypted-vote-1"
+                },
+                voter2: {
+                    voteId: "vote-id-2",
+                    vote: "encrypted-vote-2"
+                }
+            }
+        };
+
+        config = await doTransactions([
+            setupVoteAllowance,
+            createBasicElection
+        ], basicConfig);
+    });
+
+    it("should not allow vote", async function () {
+        let errorOccured = false;
+        try{
+            await castVotes(config);
+        } catch(e){
+            errorOccured = true;
+        }
+        assert.equal(errorOccured, true, "error was expected")
+    });
+});
 
 contract('Basic Election', function (accounts) {
 
@@ -126,6 +169,14 @@ contract('Basic Election', function (accounts) {
     it("should have both votes present", async function () {
         let vote1 = await config.contract.getVoteAt(0);
         let vote2 = await config.contract.getVoteAt(1);
+        let votes = [vote1, vote2].sort();
+        assert.equal("encrypted-vote-1", votes[0], "expected first vote");
+        assert.equal("encrypted-vote-2", votes[1], "expected second vote");
+    });
+
+    it("should be assigned to correct voteId", async function () {
+        let vote1 = await config.contract.votes("vote-id-1");
+        let vote2 = await config.contract.votes("vote-id-2");
 
         assert.equal("encrypted-vote-1", vote1, "expected first vote");
         assert.equal("encrypted-vote-2", vote2, "expected second vote");
