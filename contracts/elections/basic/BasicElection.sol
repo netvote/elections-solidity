@@ -40,6 +40,7 @@ contract BasicElection is BasePool, BaseBallot, BaseElection {
       * @param revealerAddress The address of the Key Revealer that will post the Key.
       * @param location The location reference for the ballot metadata (e.g., IPFS Reference)
       * @param gatewayAddress The address of the Vote Gateway that will submit votes.
+      * @param autoActivate Automatically activate this election to allow votes
       */
     function BasicElection(
         address allowanceAddress,
@@ -47,10 +48,14 @@ contract BasicElection is BasePool, BaseBallot, BaseElection {
         bool allowUpdates,
         address revealerAddress,
         string location,
-        address gatewayAddress) BaseElection(allowanceAddress, ownerOfAllowance, allowUpdates, revealerAddress) BaseBallot(msg.sender, location) BasePool(this, gatewayAddress) public
+        address gatewayAddress,
+        bool autoActivate) BaseElection(allowanceAddress, ownerOfAllowance, allowUpdates, revealerAddress) BaseBallot(msg.sender, location) BasePool(this, gatewayAddress) public
     {
         //pool lists this so it will comply with tally api contract (like tiered election)
         addBallot(this);
+        if (autoActivate) {
+            activate();
+        }
     }
 
 }
