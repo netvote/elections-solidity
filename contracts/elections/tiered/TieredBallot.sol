@@ -19,16 +19,17 @@
 
 pragma solidity ^0.4.17;
 
+import "../../lib/Bytes32Set.sol";
 import "../links/PoolRegistry.sol";
-import "../lib/Bytes32Set.sol";
-import "./Election.sol";
-import "./RegistrationPool.sol";
+import "./TieredElection.sol";
+import "./TieredPool.sol";
+import "../BaseBallot.sol";
 
 
-contract Ballot is PoolRegistry {
+contract TieredBallot is BaseBallot, PoolRegistry {
     using Bytes32Set for Bytes32Set.SetData;
 
-    // events
+    // events for subscribing to this ballot
     event BallotVote(address pool, bytes32 voteId);
 
     // default group (popular vote)
@@ -39,8 +40,7 @@ contract Ballot is PoolRegistry {
     mapping (bytes32 => AddressSet.SetData) groupPoolSet;
     mapping (address => Bytes32Set.SetData) poolGroupSet;
 
-    Election public election;
-    string public metadataLocation;
+    address public election;
 
     // state
     // map of voters to prevent duplicates
@@ -49,21 +49,15 @@ contract Ballot is PoolRegistry {
     // pools to the list of voters
     mapping (address => bytes32[]) poolVoters;
 
-    function Ballot(address electionAddress, address ownerAddress, string location) public {
+    function TieredBallot(address electionAddress, address ownerAddress, string location) BaseBallot(ownerAddress, location) public {
         require(electionAddress != address(0));
-        election = Election(electionAddress);
-        owner = ownerAddress;
-        metadataLocation = location;
+        election = electionAddress;
         groupSet.put(GROUP_ALL);
     }
 
     modifier validPool() {
         require(poolSet.contains(msg.sender));
         _;
-    }
-
-    function setMetadataLocation(string location) public building admin {
-        metadataLocation = location;
     }
 
     function groupPoolCount(bytes32 group) constant public returns (uint256) {
@@ -90,7 +84,7 @@ contract Ballot is PoolRegistry {
     }
 
     function checkElection() public constant returns (bool) {
-        return election != address(0) && election.ballotExists(this);
+        return election != address(0) && TieredElection(election).ballotExists(this);
     }
 
     function checkPools() public constant returns (bool) {
@@ -100,15 +94,15 @@ contract Ballot is PoolRegistry {
         }
         for (uint256 i = 0; i<poolSet.size(); i++) {
             // pool must reference this ballot
-            if (!RegistrationPool(poolSet.getAt(i)).ballotExists(this)) {
+            if (!TieredPool(poolSet.getAt(i)).ballotExists(this)) {
                 return false;
             }
             // pool must point to same election
-            if (RegistrationPool(poolSet.getAt(i)).election() != election) {
+            if (TieredPool(poolSet.getAt(i)).election() != election) {
                 return false;
             }
             // election has the pool
-            if (!election.poolExists(poolSet.getAt(i))) {
+            if (!TieredElection(election).poolExists(poolSet.getAt(i))) {
                 return false;
             }
         }

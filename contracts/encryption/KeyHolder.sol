@@ -20,35 +20,35 @@
 pragma solidity ^0.4.17;
 
 import "../state/ElectionPhaseable.sol";
-import "../lib/AddressSet.sol";
 
 
-contract PoolRegistry is Adminable, ElectionPhaseable {
-    using AddressSet for AddressSet.SetData;
+// KeyRevealable
+// allows one to reveal a key
+contract KeyHolder is ElectionPhaseable {
 
-    AddressSet.SetData poolSet;
+    event KeyReleased();
 
-    function getPoolIndex(address p) public constant returns (uint256) {
-        return poolSet.indexOf(p);
+    address revealer;
+    string public publicKey;
+    string public privateKey;
+
+    function KeyHolder(address revealerAddr) public {
+        revealer = revealerAddr;
     }
 
-    function getPool(uint256 index) public constant returns(address) {
-        return poolSet.getAt(index);
+    modifier onlyRevealer(){
+        require(msg.sender == revealer);
+        _;
     }
 
-    function getPoolCount() public constant returns (uint256) {
-        return poolSet.size();
+    //TODO: instead of from admin, this should be only key writer (specified address)
+    function setPublicKey(string key) public building onlyRevealer {
+        publicKey = key;
     }
 
-    function addPool(address p) public building admin {
-        poolSet.put(p);
-    }
-
-    function removePool(address p) public building admin {
-        poolSet.remove(p);
-    }
-
-    function poolExists(address p) public constant returns (bool) {
-        return poolSet.contains(p);
+    //TODO: instead of from admin, this should be only key writer (specified address)
+    function setPrivateKey(string key) public closed onlyRevealer {
+        privateKey = key;
+        KeyReleased();
     }
 }

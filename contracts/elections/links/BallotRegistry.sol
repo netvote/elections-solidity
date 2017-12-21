@@ -19,8 +19,8 @@
 
 pragma solidity ^0.4.17;
 
-import "../state/ElectionPhaseable.sol";
-import "../lib/AddressSet.sol";
+import "../../state/ElectionPhaseable.sol";
+import "../../lib/AddressSet.sol";
 
 
 contract BallotRegistry is Adminable, ElectionPhaseable {

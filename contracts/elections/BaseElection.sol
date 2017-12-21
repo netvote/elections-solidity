@@ -20,58 +20,32 @@
 pragma solidity ^0.4.17;
 
 import "./VoteAllowance.sol";
-import "../links/BallotRegistry.sol";
-import "../links/PoolRegistry.sol";
+import "./links/BallotRegistry.sol";
+import "./links/PoolRegistry.sol";
+import "../encryption/KeyHolder.sol";
 import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
 
 
-// Election
+// BaseElection
 // top-level structure for election
-contract Election is BallotRegistry, PoolRegistry, ReentrancyGuard {
-
-    event KeyReleased();
+contract BaseElection is KeyHolder, ReentrancyGuard {
 
     VoteAllowance allowance;
     address allowanceAccount;
-
-    string public publicKey;
-    string public privateKey;
     bool public allowVoteUpdates;
 
-    /**
-     * @dev Create an election
-     * @param allowanceAddress address of Netvote VoteAllowance contract
-     * @param acct address of account from whom to deduct votes from
-     * @param allowUpdates allow voters to update votes after voting
-     */
-    function Election(address allowanceAddress, address acct, bool allowUpdates) public {
+    function BaseElection(
+        address allowanceAddress,
+        address acct,
+        bool allowUpdates,
+        address revealer) KeyHolder(revealer) public
+    {
         allowance = VoteAllowance(allowanceAddress);
         allowanceAccount = acct;
         allowVoteUpdates = allowUpdates;
     }
 
-    function checkConfig() public constant returns (bool) {
-        //TODO: implement
-        return true;
-    }
-
-    //TODO: instead of from admin, this should be only key writer (specified address)
-    function setPublicKey(string key) public building admin {
-        publicKey = key;
-    }
-
-    //TODO: instead of from admin, this should be only key writer (specified address)
-    function setPrivateKey(string key) public closed admin {
-        privateKey = key;
-        KeyReleased();
-    }
-
-    modifier poolIsAllowed() {
-        require(poolSet.contains(msg.sender));
-        _;
-    }
-
-    function deductVote() public voting nonReentrant poolIsAllowed {
+    function deductVote() public voting nonReentrant {
         allowance.deduct(allowanceAccount);
     }
 }

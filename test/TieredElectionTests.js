@@ -17,12 +17,12 @@
 // (c) 2017 netvote contributors.
 //------------------------------------------------------------------------------
 
-let Election = artifacts.require("Election");
-let Ballot = artifacts.require("Ballot");
-let RegistrationPool = artifacts.require("RegistrationPool");
+let TieredElection = artifacts.require("TieredElection");
+let TieredBallot = artifacts.require("TieredBallot");
+let TieredPool = artifacts.require("TieredPool");
 let VoteAllowance = artifacts.require("VoteAllowance");
-const Web3Utils = require('web3-utils');
 
+// for debugging
 let log = (msg) => {
     //console.log(msg);
 };
@@ -35,7 +35,7 @@ let getVotesByGroup = async (ballot, group) => {
         let voterCount = await ballot.getPoolVoterCount(p);
         for(let j=0; j<voterCount;j++){
             let v = await ballot.getPoolVoter(p, j);
-            let vt = await RegistrationPool.at(p).votes(v);
+            let vt = await TieredPool.at(p).votes(v);
             votes.push(vt);
         }
     }
@@ -48,7 +48,7 @@ let createElection = async(config) => {
     log("create election");
     let va = await VoteAllowance.new({from: config.netvote});
     await va.addVotes(config.account.owner, config.account.allowance, {from: config.netvote});
-    config.contract = await Election.new(va.address, config.account.owner, config.allowUpdates, {from: config.admin });
+    config.contract = await TieredElection.new(va.address, config.account.owner, config.allowUpdates, config.netvote, {from: config.admin });
     await va.addElection(config.contract.address, {from: config.account.owner});
     return config;
 };
@@ -60,7 +60,7 @@ let createBallots = async(config) => {
         if (config.ballots.hasOwnProperty(name)) {
             let ballotConfig = config.ballots[name];
             let admin = ballotConfig.admin;
-            let ballot = await Ballot.new(config.contract.address, admin, ballotConfig.metadata, {from: config.admin});
+            let ballot = await TieredBallot.new(config.contract.address, admin, ballotConfig.metadata, {from: config.admin});
             await config.contract.addBallot(ballot.address, {from: config.admin});
             for(let i=0; i<ballotConfig.groups.length; i++){
                 await ballot.addGroup(web3.fromAscii(ballotConfig.groups[i]), {from: admin});
@@ -78,7 +78,7 @@ let createPools = async(config) => {
         if (config.pools.hasOwnProperty(name)) {
             let poolConfig = config.pools[name];
             let admin = poolConfig.admin;
-            let pool = await RegistrationPool.new(config.contract.address, config.gateway, {from: admin});
+            let pool = await TieredPool.new(config.contract.address, config.gateway, {from: admin});
             config.pools[name].contract = pool;
 
             for(let i=0; i<poolConfig.ballots.length; i++) {
@@ -193,7 +193,7 @@ const assertVote = (actual, expected) => {
     assert.equal(actual, expected);
 };
 
-contract('Election: Configuration TX', function (accounts) {
+contract('Tiered Election: Configuration TX', function (accounts) {
     let config;
 
     beforeEach(async ()=> {
@@ -295,7 +295,7 @@ let printConfig = (config) => {
 };
 
 
-contract('Simple Election', function (accounts) {
+contract('Tiered Minimal Election', function (accounts) {
     let config;
 
     before(async () => {
@@ -348,7 +348,7 @@ contract('Simple Election', function (accounts) {
 
 });
 
-contract('Hierarchical Ballots, Two Pools, Two Voters', function (accounts) {
+contract('Tiered Hierarchical Ballots, Two Pools, Two Voters', function (accounts) {
     let config;
 
     before(async () => {
@@ -450,7 +450,7 @@ contract('Hierarchical Ballots, Two Pools, Two Voters', function (accounts) {
     });
 });
 
-contract('Two Overlapping Ballots, Two Pools, Two Voters', function (accounts) {
+contract('Tiered Two Overlapping Ballots, Two Pools, Two Voters', function (accounts) {
 
     let config;
 
