@@ -3,3 +3,5 @@ node_modules
 build
 .ropsten.json
 scripts
+coverage.json
+coverage
