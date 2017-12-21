@@ -32,7 +32,7 @@ contract VoteAllowance is Lockable, ReentrancyGuard {
     mapping(address => uint256) votesPerCoin;
 
     // number of votes left on an account
-    mapping(address => uint256) allowance;
+    mapping(address => uint256) public allowance;
 
     // elections allowed to transact for account
     mapping(address => mapping(address => bool)) accountToElections;

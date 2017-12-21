@@ -28,6 +28,7 @@ let log = (msg) => {
 let createElection = async(config) => {
     log("create election");
     let va = await VoteAllowance.new({from: config.netvote});
+    config.allowanceContract = va;
     await va.addVotes(config.account.owner, config.account.allowance, {from: config.netvote});
     config.contract = await BasicElection.new(va.address, config.account.owner, config.allowUpdates, config.netvote, config.metadata, config.gateway, {from: config.admin });
     await va.addElection(config.contract.address, {from: config.account.owner});
@@ -89,7 +90,7 @@ contract('Basic Election', function (accounts) {
 
         config = await doEndToEndElection({
             account: {
-                allowance: 2,
+                allowance: 3,
                 owner: accounts[0]
             },
             netvote: accounts[1],
@@ -127,5 +128,10 @@ contract('Basic Election', function (accounts) {
     it("should have decryption key", async function () {
         let key = await config.contract.privateKey();
         assert.equal(key, config.encryptionKey, "key should match");
+    });
+
+    it("should have 1 vote left", async function () {
+        let votesLeft = await config.allowanceContract.allowance(config.account.owner);
+        assert.equal(votesLeft, 1, "expected 1 vote left (3 - 2 = 1)");
     });
 });
