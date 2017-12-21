@@ -22,8 +22,10 @@ pragma solidity ^0.4.17;
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
-// Adminable
-// allows an owner to designate more admins
+/**
+ * @title Adminable
+ * @dev Allows an owner to specify other admins to delegate actions
+ */
 contract Adminable is Ownable {
     mapping (address => bool) adminAddress;
 
