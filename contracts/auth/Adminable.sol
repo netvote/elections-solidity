@@ -30,8 +30,12 @@ contract Adminable is Ownable {
     mapping (address => bool) adminAddress;
 
     modifier admin() {
-        require(msg.sender == owner || adminAddress[msg.sender]);
+        require(isAdmin(msg.sender));
         _;
+    }
+
+    function isAdmin(address addr) public constant returns (bool) {
+        return addr != address(0) && (addr == owner || adminAddress[addr]);
     }
 
     function addAdmin(address addr) public admin {
