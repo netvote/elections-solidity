@@ -20,6 +20,11 @@
 pragma solidity ^0.4.17;
 
 
+/**
+ * @title Bytes32Set
+ * @dev iterable map of bytes32 for that modifies size upon removal
+ * Note that the order changes upon removal.
+ */
 library Bytes32Set {
 
     struct SetData {

@@ -23,6 +23,12 @@ import "../../state/ElectionPhaseable.sol";
 import "../../lib/AddressSet.sol";
 
 
+/**
+ * @title BallotRegistry
+ * @dev Hooks for iterating over a list of ballots.  This uses an AddressSet
+ * which prevents duplicates and allows for removal.
+ * Note: Order is not guaranteed.
+ */
 contract BallotRegistry is Adminable, ElectionPhaseable {
     using AddressSet for AddressSet.SetData;
 

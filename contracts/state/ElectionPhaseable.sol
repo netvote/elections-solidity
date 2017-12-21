@@ -22,8 +22,14 @@ pragma solidity ^0.4.17;
 import "./Lockable.sol";
 
 
-// ElectionPhaseable
-// state machine for transitioning election components between modes
+/**
+ * @title ElectionPhaseable
+ * @dev State machine for election contracts.
+ * Building = while building the election
+ * Voting = votes are coming in (no changes allowed)
+ * Closed = votes may no longer arrive
+ * Aborted = admin determined there was a problem and all activities must stop
+ */
 contract ElectionPhaseable is Lockable {
     event Closed();
     event Activated();

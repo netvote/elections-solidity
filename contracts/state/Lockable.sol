@@ -22,8 +22,11 @@ pragma solidity ^0.4.17;
 import "../auth/Adminable.sol";
 
 
-// Lockable
-// a global failsafe that allows an owner of a contract to temporarily lock the contract
+/**
+ * @title Lockable
+ * @dev This safety feature allows one to globally lock a contract to prevent abuse
+ * This is used by state machines to confirm the current state.
+ */
 contract Lockable is Adminable {
     event Locked();
     event Unlocked();

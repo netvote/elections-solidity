@@ -20,6 +20,11 @@
 pragma solidity ^0.4.17;
 
 
+/**
+ * @title AddressSet
+ * @dev iterable map of addresses that modifies size upon removal
+ * Note that the order changes upon removal.
+ */
 library AddressSet {
 
     struct SetData {

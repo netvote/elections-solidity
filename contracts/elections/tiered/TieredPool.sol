@@ -24,6 +24,11 @@ import "./TieredBallot.sol";
 import "./TieredElection.sol";
 
 
+/**
+ * @title TieredPool
+ * @dev This allows a particular group over voters to collect votes for a set
+ * of mapped ballots.
+ */
 contract TieredPool is BasePool {
 
     function TieredPool(address el, address gw) BasePool(el, gw) public {

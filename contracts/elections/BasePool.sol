@@ -24,6 +24,11 @@ import "./links/BallotRegistry.sol";
 import "../lib/Bytes32Set.sol";
 
 
+/**
+ * @title BasePool
+ * @dev A base contract receives and stores votes from a gateway address.
+ * This maps a set of ballots for the purposes of ballot iteration.
+ */
 contract BasePool is BallotRegistry {
     using Bytes32Set for Bytes32Set.SetData;
 

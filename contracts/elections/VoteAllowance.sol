@@ -23,6 +23,10 @@ import "../state/Lockable.sol";
 import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
 
 
+/**
+ * @title VoteAllowance
+ * @dev A Netvote-owned global contract for vote allowance bookkeeping
+ */
 contract VoteAllowance is Lockable, ReentrancyGuard {
     event Vote(address election);
     event ElectionRegistered(address acct, address election);

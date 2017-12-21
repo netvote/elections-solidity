@@ -26,6 +26,11 @@ import "./TieredPool.sol";
 import "../BaseBallot.sol";
 
 
+/**
+ * @title TieredBallot
+ * @dev A tiered ballot represents one instance of a ballot in a tiered eleciton.
+ * This allows one to partition pools into groups for the purposes of separating votes.
+ */
 contract TieredBallot is BaseBallot, PoolRegistry {
     using Bytes32Set for Bytes32Set.SetData;
 

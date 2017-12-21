@@ -24,8 +24,11 @@ import "../links/PoolRegistry.sol";
 import "../BaseElection.sol";
 
 
-// TieredElection
-// top-level structure for election
+/**
+ * @title TieredElection
+ * @dev This allows one to map many ballots and pools into a single election.
+ * Only registered pools are allowed to transact vote allowance.
+ */
 contract TieredElection is BaseElection, BallotRegistry, PoolRegistry {
 
     /**

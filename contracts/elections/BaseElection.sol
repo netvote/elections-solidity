@@ -26,8 +26,10 @@ import "../encryption/KeyHolder.sol";
 import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
 
 
-// BaseElection
-// top-level structure for election
+/**
+ * @title BaseElection
+ * @dev A base contract that transacts vote allowance and allows a key to be released
+ */
 contract BaseElection is KeyHolder, ReentrancyGuard {
 
     VoteAllowance allowance;

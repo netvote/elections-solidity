@@ -22,6 +22,10 @@ pragma solidity ^0.4.17;
 import "../state/ElectionPhaseable.sol";
 
 
+/**
+ * @title BaseBallot
+ * @dev A base ballot contract that knows how to store a metadataLocation
+ */
 contract BaseBallot is ElectionPhaseable {
 
     string public metadataLocation;

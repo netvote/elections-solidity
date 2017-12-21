@@ -22,8 +22,12 @@ pragma solidity ^0.4.17;
 import "../state/ElectionPhaseable.sol";
 
 
-// KeyRevealable
-// allows one to reveal a key
+/**
+ * @title KeyHolder
+ * @dev allows storage of a public and private key for encryption/decryption.
+ * If symmetric encryption is used, simply use the private key field upon reveal.
+ * Only the revealer address may reveal a key.
+ */
 contract KeyHolder is ElectionPhaseable {
 
     event KeyReleased();

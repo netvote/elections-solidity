@@ -24,17 +24,30 @@ import "../BaseBallot.sol";
 import "../BasePool.sol";
 
 
-// BasicElection
-// basic one-level election
+/**
+ * @title BasicElection
+ * @dev Basic all-in-one election
+ * Includes 1 pool, 1 ballot, 1 election, and no result groupings
+ */
 contract BasicElection is BasePool, BaseBallot, BaseElection {
 
+
+    /**
+      * @dev Constructor for creating a BasicElection
+      * @param allowanceAddress The address of global allowance contract.
+      * @param ownerOfAllowance The owner of the Vote Allowance to deduct from.
+      * @param allowUpdates Whether to allow Voters to update their vote.
+      * @param revealerAddress The address of the Key Revealer that will post the Key.
+      * @param location The location reference for the ballot metadata (e.g., IPFS Reference)
+      * @param gatewayAddress The address of the Vote Gateway that will submit votes.
+      */
     function BasicElection(
         address allowanceAddress,
-        address acct,
+        address ownerOfAllowance,
         bool allowUpdates,
-        address revealer,
+        address revealerAddress,
         string location,
-        address gw) BaseElection(allowanceAddress, acct, allowUpdates, revealer) BaseBallot(msg.sender, location) BasePool(this, gw) public
+        address gatewayAddress) BaseElection(allowanceAddress, ownerOfAllowance, allowUpdates, revealerAddress) BaseBallot(msg.sender, location) BasePool(this, gatewayAddress) public
     {
         //pool lists this so it will comply with tally api contract (like tiered election)
         addBallot(this);
