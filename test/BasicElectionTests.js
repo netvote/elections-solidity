@@ -25,13 +25,18 @@ let log = (msg) => {
     //console.log(msg);
 };
 
-let createElection = async(config) => {
-    log("create election");
+let setupVoteAllowance = async(config) => {
+    log("setup vote allowance");
     let va = await VoteAllowance.new({from: config.netvote});
     config.allowanceContract = va;
     await va.addVotes(config.account.owner, config.account.allowance, {from: config.netvote});
-    config.contract = await BasicElection.new(va.address, config.account.owner, config.allowUpdates, config.netvote, config.metadata, config.gateway, {from: config.admin });
-    await va.addElection(config.contract.address, {from: config.account.owner});
+    return config;
+};
+
+let createBasicElection = async(config) => {
+    log("create election");
+    config.contract = await BasicElection.new(config.allowanceContract.address, config.account.owner, config.allowUpdates, config.netvote, config.metadata, config.gateway, {from: config.admin });
+    await config.allowanceContract.addElection(config.contract.address, {from: config.account.owner});
     return config;
 };
 
@@ -73,7 +78,8 @@ let doTransactions = async(transactions, config) => {
 
 let doEndToEndElection = async(config) => {
     return await doTransactions([
-        createElection,
+        setupVoteAllowance,
+        createBasicElection,
         activateElection,
         castVotes,
         closeElection,
