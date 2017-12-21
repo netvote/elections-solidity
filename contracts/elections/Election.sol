@@ -71,7 +71,7 @@ contract Election is BallotRegistry, PoolRegistry, ReentrancyGuard {
         _;
     }
 
-    function castVote() public voting nonReentrant poolIsAllowed {
+    function deductVote() public voting nonReentrant poolIsAllowed {
         allowance.deduct(allowanceAccount);
     }
 }

@@ -118,7 +118,7 @@ contract RegistrationPool is BallotRegistry {
         for (uint256 i = 0; i<ballots.length; i++) {
             Ballot(ballots[i]).castVote(voteId);
         }
-        election.castVote();
+        election.deductVote();
         Vote(voteId);
     }
 
