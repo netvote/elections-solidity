@@ -378,7 +378,8 @@ contract('Basic Election', function (accounts) {
     });
 });
 
-contract('Basic Election GAS Analysis', function (accounts) {
+// only for analysis
+contract('GAS: Basic Election GAS Analysis', function (accounts) {
 
     let scenarios = [
         {
@@ -436,7 +437,7 @@ contract('Basic Election GAS Analysis', function (accounts) {
 
         [true, false].forEach(async (autoActivate) => {
             config.gasAmount = {};
-            it("should use less than "+scenario.voteGasLimit+" gas (ballot="+scenario.ballotCount+", options="+scenario.optionsPerBallot+", writeIns="+scenario.writeInCount+", autoactivate="+autoActivate+")", async function () {
+            it.skip("should use less than "+scenario.voteGasLimit+" gas (ballot="+scenario.ballotCount+", options="+scenario.optionsPerBallot+", writeIns="+scenario.writeInCount+", autoactivate="+autoActivate+")", async function () {
                 config.voters.voter1.vote = await generateEncryptedVote(scenario);
                 config.autoActivate = autoActivate;
                 config = await doEndToEndElection(config);

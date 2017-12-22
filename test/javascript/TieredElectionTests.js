@@ -659,7 +659,8 @@ contract('2 Pools, 2 Voters, 2 Shared Ballots', function (accounts) {
     });
 });
 
-contract('Tiered Election GAS Analysis', function (accounts) {
+// only for analysis
+contract('GAS: Tiered Election GAS Analysis', function (accounts) {
     let threshold = 25000;
 
     let scenarios = [
@@ -701,7 +702,7 @@ contract('Tiered Election GAS Analysis', function (accounts) {
     ];
 
     scenarios.forEach(async (scenario)=> {
-        it("should use less than "+(threshold+scenario.voteGasLimit)+" gas (ballot="+scenario.ballotCount+", options="+scenario.optionsPerBallot+", writeIns="+scenario.writeInCount+")", async function () {
+        it.skip("should use less than "+(threshold+scenario.voteGasLimit)+" gas (ballot="+scenario.ballotCount+", options="+scenario.optionsPerBallot+", writeIns="+scenario.writeInCount+")", async function () {
             let config = {
                 account: {
                     allowance: 2,
