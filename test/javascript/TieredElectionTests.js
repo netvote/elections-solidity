@@ -27,6 +27,20 @@ let log = (msg) => {
     //console.log(msg);
 };
 
+let logObj = (name, obj) => {
+    console.log(name+": \n"+JSON.stringify(obj,null,"\t"));
+};
+
+let measureGas = async(config, name) => {
+    if(!config["gasAmount"]){
+        config["gasAmount"] = {};
+    }
+    let lastBlock = await web3.eth.getBlock("latest");
+    config["gasAmount"][name] = lastBlock.gasUsed;
+    return config
+};
+
+
 let getVotesByGroup = async (ballot, group) => {
     let poolCount = await ballot.groupPoolCount(group);
     let votes = [];
@@ -49,7 +63,9 @@ let createElection = async(config) => {
     let va = await VoteAllowance.new({from: config.netvote});
     await va.addVotes(config.account.owner, config.account.allowance, {from: config.netvote});
     config.contract = await TieredElection.new(va.address, config.account.owner, config.allowUpdates, config.netvote, {from: config.admin });
+    config = await measureGas(config, "Create Tiered Election");
     await va.addElection(config.contract.address, {from: config.account.owner});
+    config = await measureGas(config, "Authorize Election for Allowance");
     return config;
 };
 
@@ -61,9 +77,12 @@ let createBallots = async(config) => {
             let ballotConfig = config.ballots[name];
             let admin = ballotConfig.admin;
             let ballot = await TieredBallot.new(config.contract.address, admin, ballotConfig.metadata, {from: config.admin});
+            config = await measureGas(config, "Create Tiered Ballot");
             await config.contract.addBallot(ballot.address, {from: config.admin});
+            config = await measureGas(config, "Add Tiered Ballot to Election");
             for(let i=0; i<ballotConfig.groups.length; i++){
                 await ballot.addGroup(web3.fromAscii(ballotConfig.groups[i]), {from: admin});
+                config = await measureGas(config, "Add Group to Tiered Ballot");
             }
             config.ballots[name].contract = ballot;
         }
@@ -79,18 +98,23 @@ let createPools = async(config) => {
             let poolConfig = config.pools[name];
             let admin = poolConfig.admin;
             let pool = await TieredPool.new(config.contract.address, config.gateway, {from: admin});
+            config = await measureGas(config, "Create Tiered Pool");
             config.pools[name].contract = pool;
 
             for(let i=0; i<poolConfig.ballots.length; i++) {
                 let ballot = config.ballots[poolConfig.ballots[i]];
                 await pool.addBallot(ballot.contract.address, {from: admin});
+                config = await measureGas(config, "Add Tiered Ballot to Tiered Pool");
                 await ballot.contract.addPool(pool.address, {from: ballot.admin});
+                config = await measureGas(config, "Add Tiered Pool to Tiered Ballot");
                 await config.contract.addPool(pool.address, {from: config.admin});
+                config = await measureGas(config, "Add Tiered Pool to Election");
                 for(let g=0; g<poolConfig.groups.length; g++) {
                     let group = poolConfig.groups[g];
                     for(let j=0; j<ballot.groups.length; j++){
                         if(ballot.groups[j] === group) {
                             await ballot.contract.addPoolToGroup(pool.address, web3.fromAscii(group), {from: ballot.admin});
+                            config = await measureGas(config, "Add Tiered Pool to Ballot Group");
                             break;
                         }
                     }
@@ -104,6 +128,7 @@ let createPools = async(config) => {
 let activateElection = async(config) => {
     log("activating election");
     await config.contract.activate({from: config.admin});
+    config = await measureGas(config, "Activate Election");
     return config;
 };
 
@@ -113,6 +138,7 @@ let activateBallots = async(config) => {
         if (config.ballots.hasOwnProperty(name)) {
             let ballot = config.ballots[name];
             await ballot.contract.activate({from: ballot.admin});
+            config = await measureGas(config, "Activate Ballot");
         }
     }
     return config;
@@ -124,6 +150,7 @@ let activatePools = async(config) => {
         if (config.pools.hasOwnProperty(name)) {
             let pool = config.pools[name];
             await pool.contract.activate({from: pool.admin});
+            config = await measureGas(config, "Activate Pool");
         }
     }
     return config;
@@ -136,6 +163,7 @@ let castVotes = async(config) => {
             let voter = config.voters[name];
             let pool = config.pools[voter.pool].contract;
             await pool.castVote(voter.address+"", voter.vote, {from: config.gateway});
+            config = await measureGas(config, "Cast Vote");
         }
     }
     return config;
@@ -146,6 +174,7 @@ let closePools = async(config) => {
         if (config.pools.hasOwnProperty(name)) {
             let pool = config.pools[name];
             await pool.contract.close({from: pool.admin});
+            config = await measureGas(config, "Close Pool");
         }
     }
     return config;
@@ -156,6 +185,7 @@ let closeBallots = async(config) => {
         if (config.ballots.hasOwnProperty(name)) {
             let ballot = config.ballots[name];
             await ballot.contract.close({from: ballot.admin});
+            config = await measureGas(config, "Close Ballot");
         }
     }
     return config;
@@ -163,6 +193,7 @@ let closeBallots = async(config) => {
 
 let closeElection = async(config) => {
     await config.contract.close({from: config.admin});
+    config = await measureGas(config, "Close Election");
     return config;
 };
 
@@ -171,6 +202,10 @@ let doTransactions = async(transactions, config) => {
         config = await tx(config);
     }
     return config;
+};
+
+let printGas = (config) => {
+    logObj("Gas Amounts", config["gasAmount"]);
 };
 
 let doEndToEndElection = async(config) => {
@@ -290,12 +325,7 @@ contract('Tiered Election: Configuration TX', function (accounts) {
     });
 });
 
-let printConfig = (config) => {
-
-};
-
-
-contract('Tiered Minimal Election', function (accounts) {
+contract('1 Pool, 1 Voter, 1 Ballot', function (accounts) {
     let config;
 
     before(async () => {
@@ -348,7 +378,7 @@ contract('Tiered Minimal Election', function (accounts) {
 
 });
 
-contract('Tiered Hierarchical Ballots, Two Pools, Two Voters', function (accounts) {
+contract('2 Pools, 2 Voters, 1 Shared Ballot, 1 Different Ballot', function (accounts) {
     let config;
 
     before(async () => {
@@ -450,7 +480,7 @@ contract('Tiered Hierarchical Ballots, Two Pools, Two Voters', function (account
     });
 });
 
-contract('Tiered Two Overlapping Ballots, Two Pools, Two Voters', function (accounts) {
+contract('2 Pools, 2 Voters, 2 Shared Ballots', function (accounts) {
 
     let config;
 
@@ -555,6 +585,4 @@ contract('Tiered Two Overlapping Ballots, Two Pools, Two Voters', function (acco
         assert.equal(votes.length, 1);
         assertVote(votes[0], config.voters.voter2.vote);
     });
-
-
 });

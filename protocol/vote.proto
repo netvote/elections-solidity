@@ -1,0 +1,18 @@
+syntax = "proto3";
+package netvote;
+
+message VoteChoice {
+    oneof choice {
+        uint32 selection = 1;
+        string write_in = 2;
+    }
+}
+
+message BallotVote {
+    repeated VoteChoice choices = 1;
+}
+
+message Vote {
+    uint64 encryption_seed = 1;
+    repeated BallotVote ballot_votes = 2;
+}
