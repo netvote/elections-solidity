@@ -4,11 +4,41 @@ import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
 import "../../contracts/lib/AddressSet.sol";
 
+// this avoids a warning error for an uninitialized Set
+contract SetWrapper {
+    using AddressSet for AddressSet.SetData;
+    AddressSet.SetData set;
+
+    function indexOf(address a) public constant returns (uint256) {
+        return set.indexOf(a);
+    }
+
+    function getAt(uint256 index) public constant returns (address) {
+        return set.getAt(index);
+    }
+
+    function contains(address a) public constant returns (bool) {
+        return set.contains(a);
+    }
+
+    function size() public constant returns (uint256) {
+        return set.size();
+    }
+
+    function put(address a) public {
+        return set.put(a);
+    }
+
+    function remove(address a) public {
+        return set.remove(a);
+    }
+}
+
 contract TestAddressSet {
     using AddressSet for AddressSet.SetData;
 
     function testTwoItems() public {
-        AddressSet.SetData storage set;
+        SetWrapper set = new SetWrapper();
 
         address testData1 = address(1);
         address testData2 = address(2);
@@ -39,11 +69,10 @@ contract TestAddressSet {
         Assert.isTrue(set.contains(testData1), "expected contains testData1");
         Assert.isTrue(set.contains(testData2), "expected contains testData2");
         Assert.isFalse(set.contains(notIncluded), "expected contains testData2");
-
     }
 
     function testRemove1Then2() public {
-        AddressSet.SetData storage set;
+        SetWrapper set = new SetWrapper();
 
         address testData1 = address(1);
         address testData2 = address(2);
@@ -70,7 +99,7 @@ contract TestAddressSet {
     }
 
     function testRemove2Then1() public {
-        AddressSet.SetData storage set;
+        SetWrapper set = new SetWrapper();
 
         address testData1 = address(1);
         address testData2 = address(2);

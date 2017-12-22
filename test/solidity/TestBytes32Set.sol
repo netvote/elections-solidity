@@ -4,11 +4,41 @@ import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
 import "../../contracts/lib/Bytes32Set.sol";
 
+// this avoids a warning error for an uninitialized Set
+contract SetWrapper {
+    using Bytes32Set for Bytes32Set.SetData;
+    Bytes32Set.SetData set;
+
+    function indexOf(bytes32 a) public constant returns (uint256) {
+        return set.indexOf(a);
+    }
+
+    function getAt(uint256 index) public constant returns (bytes32) {
+        return set.getAt(index);
+    }
+
+    function contains(bytes32 a) public constant returns (bool) {
+        return set.contains(a);
+    }
+
+    function size() public constant returns (uint256) {
+        return set.size();
+    }
+
+    function put(bytes32 a) public {
+        return set.put(a);
+    }
+
+    function remove(bytes32 a) public {
+        return set.remove(a);
+    }
+}
+
 contract TestBytes32Set {
     using Bytes32Set for Bytes32Set.SetData;
 
     function testTwoItems() public {
-        Bytes32Set.SetData storage set;
+        SetWrapper set = new SetWrapper();
 
         bytes32 testData1 = keccak256("test1");
         bytes32 testData2 = keccak256("test2");
@@ -43,7 +73,7 @@ contract TestBytes32Set {
     }
 
     function testRemove1Then2() public {
-        Bytes32Set.SetData storage set;
+        SetWrapper set = new SetWrapper();
 
         bytes32 testData1 = keccak256("test1");
         bytes32 testData2 = keccak256("test2");
@@ -70,7 +100,7 @@ contract TestBytes32Set {
     }
 
     function testRemove2Then1() public {
-        Bytes32Set.SetData storage set;
+        SetWrapper set = new SetWrapper();
 
         bytes32 testData1 = keccak256("test1");
         bytes32 testData2 = keccak256("test2");
