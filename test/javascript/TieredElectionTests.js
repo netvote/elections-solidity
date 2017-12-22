@@ -16,11 +16,14 @@
 //
 // (c) 2017 netvote contributors.
 //------------------------------------------------------------------------------
-
+const protobuf = require("protobufjs");
+const crypto = require('crypto');
 let TieredElection = artifacts.require("TieredElection");
 let TieredBallot = artifacts.require("TieredBallot");
 let TieredPool = artifacts.require("TieredPool");
 let VoteAllowance = artifacts.require("VoteAllowance");
+const ENCRYPT_ALGORITHM = "aes-256-cbc";
+const ENCRYPT_KEY = "123e4567e89b12d3a456426655440000";
 
 // for debugging
 let log = (msg) => {
@@ -31,6 +34,76 @@ let logObj = (name, obj) => {
     console.log(name+": \n"+JSON.stringify(obj,null,"\t"));
 };
 
+let randomInt = (min, max) => {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return parseInt(Math.floor(Math.random() * (max - min)) + min);
+};
+
+function encrypt(text) {
+    let cipher = crypto.createCipher(ENCRYPT_ALGORITHM, ENCRYPT_KEY);
+    let encrypted = cipher.update(text, "utf8", "base64");
+    encrypted += cipher.final("base64");
+    return encrypted;
+}
+
+const toEncodedVote = async (payload) => {
+    let root = await protobuf.load("protocol/vote.proto");
+    let Vote = root.lookupType("netvote.Vote");
+    let errMsg = Vote.verify(payload);
+    if (errMsg) {
+        console.error("invalid:"+errMsg);
+        throw Error(errMsg);
+    }
+
+    let vote = Vote.create(payload);
+    return Vote.encode(vote).finish();
+};
+
+const encode = (buff, enc)=>{
+    return buff.toString(enc);
+};
+
+const toEncryptedVote = async (payload) => {
+    let encodedVote = await toEncodedVote(payload);
+    encode(encodedVote, "utf8");
+    encode(encodedVote, "ascii");
+    encode(encodedVote, "hex");
+    encode(encodedVote, "base64");
+    return encrypt(encodedVote);
+};
+
+let generateEncryptedVote = async (voteConfig) => {
+    let ballotCount = voteConfig.ballotCount;
+    let optionsPerBallot = voteConfig.optionsPerBallot;
+    let writeInCount = voteConfig.writeInCount;
+
+    let seed = randomInt(0, 2000000);
+    let vote = {
+        encryptionSeed: seed,
+        ballotVotes: []
+    };
+    for(let i=0; i<ballotCount; i++){
+        let ballotVote = {
+            choices: []
+        };
+        for(let j=0; j<optionsPerBallot; j++){
+            if(writeInCount > 0){
+                writeInCount--;
+                ballotVote.choices.push({
+                    writeIn: "Write-In Value"
+                });
+            }else {
+                ballotVote.choices.push({
+                    selection: randomInt(0, 5)
+                });
+            }
+        }
+        vote.ballotVotes.push(ballotVote);
+    }
+    return await toEncryptedVote(vote);
+};
+
 let measureGas = async(config, name) => {
     if(!config["gasAmount"]){
         config["gasAmount"] = {};
@@ -39,7 +112,6 @@ let measureGas = async(config, name) => {
     config["gasAmount"][name] = lastBlock.gasUsed;
     return config
 };
-
 
 let getVotesByGroup = async (ballot, group) => {
     let poolCount = await ballot.groupPoolCount(group);
@@ -325,7 +397,7 @@ contract('Tiered Election: Configuration TX', function (accounts) {
     });
 });
 
-contract('1 Pool, 1 Voter, 1 Ballot', function (accounts) {
+contract('Tiered Election: 1 Pool, 1 Voter, 1 Ballot', function (accounts) {
     let config;
 
     before(async () => {
@@ -378,7 +450,7 @@ contract('1 Pool, 1 Voter, 1 Ballot', function (accounts) {
 
 });
 
-contract('2 Pools, 2 Voters, 1 Shared Ballot, 1 Different Ballot', function (accounts) {
+contract('Tiered Election: 2 Pools, 2 Voters, 1 Shared Ballot, 1 Different Ballot', function (accounts) {
     let config;
 
     before(async () => {
@@ -585,4 +657,95 @@ contract('2 Pools, 2 Voters, 2 Shared Ballots', function (accounts) {
         assert.equal(votes.length, 1);
         assertVote(votes[0], config.voters.voter2.vote);
     });
+});
+
+contract('Tiered Election GAS Analysis', function (accounts) {
+    let threshold = 25000;
+
+    let scenarios = [
+        {
+            "ballotCount": 1,
+            "poolCount": 1,
+            "optionsPerBallot": 1,
+            "writeInCount": 0,
+            "voteGasLimit": 233968
+        },
+        {
+            "ballotCount": 2,
+            "poolCount": 1,
+            "optionsPerBallot": 20,
+            "writeInCount": 0,
+            "voteGasLimit": 481431
+        },
+        {
+            "ballotCount": 3,
+            "poolCount": 1,
+            "optionsPerBallot": 10,
+            "writeInCount": 2,
+            "voteGasLimit": 532311
+        },
+        {
+            "ballotCount": 3,
+            "poolCount": 1,
+            "optionsPerBallot": 20,
+            "writeInCount": 0,
+            "voteGasLimit": 621383
+        },
+        {
+            "ballotCount": 3,
+            "poolCount": 1,
+            "optionsPerBallot": 20,
+            "writeInCount": 2,
+            "voteGasLimit": 644147
+        }
+    ];
+
+    scenarios.forEach(async (scenario)=> {
+        it("should use less than "+(threshold+scenario.voteGasLimit)+" gas (ballot="+scenario.ballotCount+", options="+scenario.optionsPerBallot+", writeIns="+scenario.writeInCount+")", async function () {
+            let config = {
+                account: {
+                    allowance: 2,
+                    owner: accounts[7]
+                },
+                netvote: accounts[0],
+                admin: accounts[1],
+                allowUpdates: false,
+                gateway: accounts[8],
+                ballots: {},
+                pools: {},
+                voters: {
+                    voter1: {
+                        pool: "pool1",
+                        address: accounts[6]
+                    }
+                }
+            };
+
+            config.voters.voter1["vote"] = await generateEncryptedVote(scenario);
+
+            let ballots = [];
+            for(let i=1; i<=scenario.ballotCount; i++){
+                config.ballots["ballot"+i] = {
+                    admin: accounts[2],
+                    metadata: "ipfs1",
+                    groups: []
+                };
+                ballots.push("ballot"+i)
+            }
+
+            for(let i=1; i<=scenario.poolCount; i++){
+                config.pools["pool"+i] = {
+                    admin: accounts[4],
+                    groups: [],
+                    ballots: ballots
+                }
+            }
+
+            config.gasAmount = {};
+            config = await doEndToEndElection(config);
+
+            assert.equal(config["gasAmount"]["Cast Vote"] <= (threshold + scenario.voteGasLimit), true, "Vote Gas Limit Exceeded, limit="+scenario.voteGasLimit+", actual="+config["gasAmount"]["Cast Vote"])
+        });
+    });
+
 });

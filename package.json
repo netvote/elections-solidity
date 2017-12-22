@@ -11,7 +11,7 @@
     "compile": "truffle compile",
     "migrate": "truffle migrate",
     "networks": "truffle networks",
-    "test-norpc": "truffle test --network testing",
+    "test-norpc": "truffle test --network development",
     "test": "run-with-testrpc -l 20000000 'truffle test --network testing'",
     "coverage": "solidity-coverage"
   },

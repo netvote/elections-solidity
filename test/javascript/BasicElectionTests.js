@@ -378,7 +378,7 @@ contract('Basic Election', function (accounts) {
     });
 });
 
-contract('GAS Analysis', function (accounts) {
+contract('Basic Election GAS Analysis', function (accounts) {
 
     let scenarios = [
         {
@@ -397,24 +397,6 @@ contract('GAS Analysis', function (accounts) {
             ballotCount: 1,
             optionsPerBallot: 10,
             writeInCount: 0,
-            voteGasLimit: 225000
-        },
-        {
-            ballotCount: 1,
-            optionsPerBallot: 20,
-            writeInCount: 0,
-            voteGasLimit: 250000
-        },
-        {
-            ballotCount: 1,
-            optionsPerBallot: 1,
-            writeInCount: 2,
-            voteGasLimit: 200000
-        },
-        {
-            ballotCount: 1,
-            optionsPerBallot: 5,
-            writeInCount: 2,
             voteGasLimit: 225000
         },
         {
