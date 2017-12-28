@@ -16,7 +16,7 @@
 //
 // (c) 2017 netvote contributors.
 //------------------------------------------------------------------------------
-const election = require("../jslib/tiered-election.js");
+const election = require("./jslib/tiered-election.js");
 
 const assertVote = (actual, expected) => {
     assert.equal(actual, expected);

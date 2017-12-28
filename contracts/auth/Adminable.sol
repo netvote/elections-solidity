@@ -38,11 +38,15 @@ contract Adminable is Ownable {
         return addr != address(0) && (addr == owner || adminAddress[addr]);
     }
 
-    function addAdmin(address addr) public admin {
+    function addAdmin(address addr) public onlyOwner {
         adminAddress[addr] = true;
     }
 
-    function removeAdmin(address addr) public admin {
+    function removeAdmin(address addr) public onlyOwner {
         adminAddress[addr] = false;
+    }
+
+    function removeSelf() public admin {
+        adminAddress[msg.sender] = false;
     }
 }
