@@ -131,6 +131,10 @@ let castVotes = async(config) => {
             let voter = config.voters[name];
             await config.contract.castVote(voter.voteId, voter.vote, {from: config.gateway});
             config = await measureGas(config, "Cast Vote");
+            if(voter.updateVote){
+                await config.contract.updateVote(voter.voteId, voter.updateVote, {from: config.gateway});
+                config = await measureGas(config, "Update Vote");
+            }
         }
     }
     return config;

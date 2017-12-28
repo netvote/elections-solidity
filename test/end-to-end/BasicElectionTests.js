@@ -126,6 +126,70 @@ contract('Auto-Activating Basic Election', function (accounts) {
     });
 });
 
+contract('Auto-Activating Basic Election with Updates', function (accounts) {
+
+    let config;
+
+    before(async () => {
+
+        config = await election.doEndToEndElectionAutoActivate({
+            account: {
+                allowance: 3,
+                owner: accounts[0]
+            },
+            netvote: accounts[1],
+            admin: accounts[2],
+            allowUpdates: true,
+            autoActivate: true,
+            gateway: accounts[3],
+            encryptionKey: "testkey",
+            metadata: "ipfs1",
+            voters: {
+                voter1: {
+                    voteId: "vote-id-1",
+                    vote: "encrypted-vote-2",
+                    updateVote: "encrypted-vote-1"
+                },
+                voter2: {
+                    voteId: "vote-id-2",
+                    vote: "encrypted-vote-2"
+                }
+            }
+        });
+    });
+
+    it("should have 2 votes", async function () {
+        let voteCount = await config.contract.getVoteCount();
+        assert.equal(voteCount, 2, "expected 2 votes");
+    });
+
+    it("should have both votes present", async function () {
+        let vote1 = await config.contract.getVoteAt(0);
+        let vote2 = await config.contract.getVoteAt(1);
+        let votes = [vote1, vote2].sort();
+        assert.equal("encrypted-vote-1", votes[0], "expected first vote");
+        assert.equal("encrypted-vote-2", votes[1], "expected second vote");
+    });
+
+    it("should be assigned to correct voteId", async function () {
+        let vote1 = await config.contract.votes("vote-id-1");
+        let vote2 = await config.contract.votes("vote-id-2");
+
+        assert.equal("encrypted-vote-1", vote1, "expected first vote");
+        assert.equal("encrypted-vote-2", vote2, "expected second vote");
+    });
+
+    it("should have decryption key", async function () {
+        let key = await config.contract.privateKey();
+        assert.equal(key, config.encryptionKey, "key should match");
+    });
+
+    it("should have 1 vote left", async function () {
+        let votesLeft = await config.allowanceContract.allowance(config.account.owner);
+        assert.equal(votesLeft, 1, "expected 1 vote left (3 - 2 = 1)");
+    });
+});
+
 contract('Basic Election', function (accounts) {
 
     let config;

@@ -59,11 +59,6 @@ contract ElectionPhaseable is Lockable {
         _;
     }
 
-    modifier aborted() {
-        require(electionPhase == ElectionPhase.Aborted);
-        _;
-    }
-
     function isClosed() public constant returns (bool) {
         return electionPhase == ElectionPhase.Closed;
     }

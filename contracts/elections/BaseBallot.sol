@@ -35,7 +35,4 @@ contract BaseBallot is ElectionPhaseable {
         metadataLocation = location;
     }
 
-    function setMetadataLocation(string location) public building admin {
-        metadataLocation = location;
-    }
 }

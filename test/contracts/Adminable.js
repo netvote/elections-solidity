@@ -12,7 +12,7 @@ contract('Adminable', function (accounts) {
     let notAdmin;
     let adminable;
 
-    before(async () => {
+    beforeEach(async () => {
         owner = accounts[0];
         admin = accounts[1];
         admin2 = accounts[2];
