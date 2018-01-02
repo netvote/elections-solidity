@@ -68,7 +68,7 @@ module.exports = async function(callback) {
     let vote1 = await election.toEncryptedVote(vote1Json);
     let vote2 = await election.toEncryptedVote(vote2Json);
 
-    let config = await election.doEndToEndElection({
+    let config = await election.doEndToEndElectionAutoActivate({
         account: {
             allowance: 3,
             owner: accounts[0]
@@ -76,7 +76,7 @@ module.exports = async function(callback) {
         netvote: accounts[1],
         admin: accounts[2],
         allowUpdates: false,
-        autoActivate: false,
+        autoActivate: true,
         skipGasMeasurment:  true,
         gateway: accounts[3],
         encryptionKey: "testkey",
