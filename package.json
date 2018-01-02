@@ -41,6 +41,7 @@
     "zeppelin-solidity": "^1.3.0"
   },
   "devDependencies": {
-    "solidity-coverage": "^0.4.5"
+    "solidity-coverage": "^0.4.5",
+    "truffle": "^4.0.1"
   }
 }
