@@ -35,20 +35,7 @@ contract TieredPool is BasePool {
 
     }
 
-    // returns true if pool can vote on election
-    function checkConfig() public constant returns (bool) {
-        // election is valid addr
-        if (election == address(0)) {
-            return false;
-        }
-        // has ballots
-        if ( ballotSet.size() == 0) {
-            return false;
-        }
-        // election includes this pool
-        if (!TieredElection(election).poolExists(this)) {
-            return false;
-        }
+    function checkBallots() public constant returns (bool) {
         //all ballots include pool, and election includes ballot
         for (uint256 i = 0; i<ballotSet.size(); i++) {
             if (!TieredBallot(ballotSet.getAt(i)).poolExists(this)) {
@@ -59,6 +46,20 @@ contract TieredPool is BasePool {
             }
         }
         return true;
+    }
+
+    // returns true if pool can vote on election
+    function checkConfig() public constant returns (bool) {
+        // has ballots
+        if ( ballotSet.size() == 0) {
+            return false;
+        }
+        // election includes this pool
+        if (!TieredElection(election).poolExists(this)) {
+            return false;
+        }
+
+        return checkBallots();
     }
 
     // for each ballot, cast vote for sender, store vote to pool

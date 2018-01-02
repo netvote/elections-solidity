@@ -31,7 +31,8 @@ contract BaseBallot is ElectionPhaseable {
     string public metadataLocation;
 
     function BaseBallot(address ownerAddress, string location) public {
-        owner = ownerAddress;
+        //owner = ownerAddress;
+        adminAddress[ownerAddress] = true;
         metadataLocation = location;
     }
 
