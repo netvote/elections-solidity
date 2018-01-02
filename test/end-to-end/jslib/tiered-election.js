@@ -1,15 +1,44 @@
 const protobuf = require("protobufjs");
 const crypto = require('crypto');
-let TieredElection = artifacts.require("TieredElection");
-let TieredBallot = artifacts.require("TieredBallot");
-let TieredPool = artifacts.require("TieredPool");
-let VoteAllowance = artifacts.require("VoteAllowance");
+let TieredElection;
+let TieredBallot;
+let TieredPool;
+let VoteAllowance;
 const ENCRYPT_ALGORITHM = "aes-256-cbc";
 const ENCRYPT_KEY = "123e4567e89b12d3a456426655440000";
 
 // for debugging
 let log = (msg) => {
     //console.log(msg);
+};
+
+// used to run these outside of a test context (e.g., truffle exec)
+let initContracts = (provider) => {
+    const contract = require("truffle-contract");
+    const Web3 = require("web3");
+    TieredElection = contract(require("../../../build/contracts/TieredElection.json"));
+    TieredBallot = contract(require("../../../build/contracts/TieredBallot.json"));
+    TieredPool = contract(require("../../../build/contracts/TieredPool.json"));
+
+    VoteAllowance = contract(require("../../../build/contracts/VoteAllowance.json"));
+    let p = new Web3.providers.HttpProvider(provider);
+
+    [TieredElection, TieredBallot, TieredPool, VoteAllowance].forEach(async (c)=> {
+        c.setProvider(p);
+        c.defaults({
+            gas: 4712388,
+            gasPrice: 100000000000
+        })
+    });
+};
+
+let initTestContracts = () => {
+    if(TieredElection === undefined) {
+        TieredElection = artifacts.require("TieredElection");
+        TieredBallot = artifacts.require("TieredBallot");
+        TieredPool = artifacts.require("TieredPool");
+        VoteAllowance = artifacts.require("VoteAllowance");
+    }
 };
 
 let logObj = (name, obj) => {
@@ -87,14 +116,15 @@ let generateEncryptedVote = async (voteConfig) => {
 };
 
 let measureGas = async(config, name) => {
-    if(!config["gasAmount"]){
-        config["gasAmount"] = {};
+    if(!config.skipGasMeasurment) {
+        if (!config["gasAmount"]) {
+            config["gasAmount"] = {};
+        }
+        let lastBlock = await web3.eth.getBlock("latest");
+        config["gasAmount"][name] = lastBlock.gasUsed;
     }
-    let lastBlock = await web3.eth.getBlock("latest");
-    config["gasAmount"][name] = lastBlock.gasUsed;
     return config
 };
-
 let getVotesByGroup = async (ballot, group) => {
     let poolCount = await ballot.groupPoolCount(group);
     let votes = [];
@@ -135,7 +165,7 @@ let createBallots = async(config) => {
             await config.contract.addBallot(ballot.address, {from: config.admin});
             config = await measureGas(config, "Add Tiered Ballot to Election");
             for(let i=0; i<ballotConfig.groups.length; i++){
-                await ballot.addGroup(web3.fromAscii(ballotConfig.groups[i]), {from: admin});
+                await ballot.addGroup(ballotConfig.groups[i], {from: admin});
                 config = await measureGas(config, "Add Group to Tiered Ballot");
             }
             config.ballots[name].contract = ballot;
@@ -167,7 +197,7 @@ let createPools = async(config) => {
                     let group = poolConfig.groups[g];
                     for(let j=0; j<ballot.groups.length; j++){
                         if(ballot.groups[j] === group) {
-                            await ballot.contract.addPoolToGroup(pool.address, web3.fromAscii(group), {from: ballot.admin});
+                            await ballot.contract.addPoolToGroup(pool.address, group, {from: ballot.admin});
                             config = await measureGas(config, "Add Tiered Pool to Ballot Group");
                             break;
                         }
@@ -255,7 +285,19 @@ let closeElection = async(config) => {
     return config;
 };
 
+let releaseKey = async(config) => {
+    log("set decryption key");
+    await config.contract.setPrivateKey(ENCRYPT_KEY, {from: config.netvote});
+    config = await measureGas(config, "Set Decryption Key");
+    return config;
+};
+
 let doTransactions = async(transactions, config) => {
+    if(config.provider){
+        initContracts(config.provider);
+    }else {
+        initTestContracts();
+    }
     for(let tx of transactions) {
         config = await tx(config);
     }
@@ -278,7 +320,8 @@ let doEndToEndElection = async(config) => {
         castVotes,
         closePools,
         closeBallots,
-        closeElection
+        closeElection,
+        releaseKey
     ], config);
 };
 

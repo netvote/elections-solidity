@@ -32,7 +32,7 @@ contract('Unactivated Election', function (accounts) {
             admin: accounts[2],
             allowUpdates: false,
             gateway: accounts[3],
-            encryptionKey: "testkey",
+            encryptionKey: "123e4567e89b12d3a456426655440000",
             metadata: "ipfs1",
             voters: {
                 voter1: {
@@ -79,7 +79,7 @@ contract('Auto-Activating Basic Election', function (accounts) {
             allowUpdates: false,
             autoActivate: true,
             gateway: accounts[3],
-            encryptionKey: "testkey",
+            encryptionKey: "123e4567e89b12d3a456426655440000",
             metadata: "ipfs1",
             voters: {
                 voter1: {
@@ -142,7 +142,7 @@ contract('Auto-Activating Basic Election with Updates', function (accounts) {
             allowUpdates: true,
             autoActivate: true,
             gateway: accounts[3],
-            encryptionKey: "testkey",
+            encryptionKey: "123e4567e89b12d3a456426655440000",
             metadata: "ipfs1",
             voters: {
                 voter1: {
@@ -217,7 +217,7 @@ contract('Basic Election', function (accounts) {
             allowUpdates: false,
             autoActivate: false,
             gateway: accounts[3],
-            encryptionKey: "testkey",
+            encryptionKey: "123e4567e89b12d3a456426655440000",
             metadata: "ipfs1",
             voters: {
                 voter1: {
@@ -312,7 +312,7 @@ contract('GAS: Basic Election GAS Analysis', function (accounts) {
             allowUpdates: false,
             autoActivate: false,
             gateway: accounts[3],
-            encryptionKey: "testkey",
+            encryptionKey: "123e4567e89b12d3a456426655440000",
             metadata: "ipfs1",
             voters: {
                 voter1: {
