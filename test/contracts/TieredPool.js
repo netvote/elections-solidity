@@ -19,7 +19,6 @@ let assertCheckConfig = async (pool, expected) =>{
     assert.equal(checked, expected, "checkConfig should have been "+expected)
 };
 
-
 contract('TieredPool', function (accounts) {
     let pool;
     let ballot;
