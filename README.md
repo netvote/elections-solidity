@@ -45,3 +45,6 @@ npm run lint
 npm run coverage
 ```
 
+License
+-------
+All smart contracts are released under GPL v3.
