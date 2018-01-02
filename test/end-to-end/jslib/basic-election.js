@@ -175,7 +175,7 @@ let closeElection = async(config) => {
 
 let releaseKey = async(config) => {
     log("set decryption key");
-    await config.contract.setPrivateKey(config.encryptionKey, {from: config.netvote});
+    await config.contract.setPrivateKey(ENCRYPT_KEY, {from: config.netvote});
     config = await measureGas(config, "Set Decryption Key");
     return config;
 };
