@@ -35,6 +35,7 @@ contract BaseElection is KeyHolder, ReentrancyGuard {
     VoteAllowance allowance;
     address allowanceAccount;
     bool public allowVoteUpdates;
+    string public electionType;
 
     function BaseElection(
         address allowanceAddress,

@@ -31,7 +31,6 @@ import "../BasePool.sol";
  */
 contract BasicElection is BasePool, BaseBallot, BaseElection {
 
-
     /**
       * @dev Constructor for creating a BasicElection
       * @param allowanceAddress The address of global allowance contract.
@@ -51,6 +50,7 @@ contract BasicElection is BasePool, BaseBallot, BaseElection {
         address gatewayAddress,
         bool autoActivate) BaseElection(allowanceAddress, ownerOfAllowance, allowUpdates, revealerAddress) BaseBallot(msg.sender, location) BasePool(this, gatewayAddress) public
     {
+        electionType = "BASIC";
         //pool lists this so it will comply with tally api contract (like tiered election)
         addBallot(this);
         if (autoActivate) {

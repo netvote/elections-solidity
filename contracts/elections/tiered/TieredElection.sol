@@ -42,7 +42,9 @@ contract TieredElection is BaseElection, BallotRegistry, PoolRegistry {
         address acct,
         bool allowUpdates,
         address revealer) BaseElection(allowanceAddress, acct, allowUpdates, revealer) public
-    {}
+    {
+        electionType = "TIERED";
+    }
 
     function checkConfig() public constant returns (bool) {
         //TODO: implement confirmation that election is configured
