@@ -1,10 +1,34 @@
 const protobuf = require("protobufjs");
 const crypto = require('crypto');
-let BasicElection = artifacts.require("BasicElection");
-let VoteAllowance = artifacts.require("VoteAllowance");
+let BasicElection;
+let VoteAllowance;
 
 const ENCRYPT_ALGORITHM = "aes-256-cbc";
 const ENCRYPT_KEY = "123e4567e89b12d3a456426655440000";
+
+// used to run these outside of a test context (e.g., truffle exec)
+let initContracts = (provider) => {
+    const contract = require("truffle-contract");
+    const Web3 = require("web3");
+    BasicElection = contract(require("../../../build/contracts/BasicElection.json"));
+    VoteAllowance = contract(require("../../../build/contracts/VoteAllowance.json"));
+    let p = new Web3.providers.HttpProvider(provider);
+
+    [BasicElection, VoteAllowance].forEach(async (c)=> {
+        c.setProvider(p);
+        c.defaults({
+            gas: 4712388,
+            gasPrice: 100000000000
+        })
+    });
+};
+
+let initTestContracts = () => {
+    if(BasicElection === undefined) {
+        BasicElection = artifacts.require("BasicElection");
+        VoteAllowance = artifacts.require("VoteAllowance");
+    }
+};
 
 // for debugging
 let log = (msg) => {
@@ -86,11 +110,13 @@ let generateEncryptedVote = async (voteConfig) => {
 };
 
 let measureGas = async(config, name) => {
-    if(!config["gasAmount"]){
-        config["gasAmount"] = {};
+    if(!config.skipGasMeasurment) {
+        if (!config["gasAmount"]) {
+            config["gasAmount"] = {};
+        }
+        let lastBlock = await web3.eth.getBlock("latest");
+        config["gasAmount"][name] = lastBlock.gasUsed;
     }
-    let lastBlock = await web3.eth.getBlock("latest");
-    config["gasAmount"][name] = lastBlock.gasUsed;
     return config
 };
 
@@ -155,6 +181,11 @@ let releaseKey = async(config) => {
 };
 
 let doTransactions = async(transactions, config) => {
+    if(config.provider){
+        initContracts(config.provider);
+    }else {
+        initTestContracts();
+    }
     for(let tx of transactions) {
         config = await tx(config);
     }
