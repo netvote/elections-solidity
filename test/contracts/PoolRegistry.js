@@ -1,6 +1,5 @@
 let PoolRegistry = artifacts.require("PoolRegistry");
 
-
 let assertCount = async (registry, expected) => {
     let count = await registry.getPoolCount();
     assert.equal(count, expected, "invalid pool count");
