@@ -47,12 +47,12 @@ contract Lockable is Adminable {
         return lockState;
     }
 
-    function lock() public admin {
+    function lock() public admin unlocked {
         lockState = true;
         Locked();
     }
 
-    function unlock() public admin {
+    function unlock() public admin locked {
         lockState = false;
         Unlocked();
     }

@@ -56,6 +56,10 @@ contract VoteAllowance is Lockable, ReentrancyGuard {
         _;
     }
 
+    function electionIsAllowed(address account, address election) public constant returns (bool) {
+        return accountToElections[account][election];
+    }
+
     // allow an address (election) to transact on sender's behalf
     function addElection(address election) public unlocked {
         require(!accountToElections[msg.sender][election]);
