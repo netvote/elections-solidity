@@ -20,17 +20,53 @@
 const election = require("../test/end-to-end/jslib/basic-election.js");
 
 module.exports = async function(callback) {
+    let accounts = web3.eth.accounts;
 
-    let voteConfig = {
-        ballotCount: 1,
-        optionsPerBallot: 5,
-        writeInCount: 0
+    let vote1Json = {
+        encryptionSeed: 12345,
+        ballotVotes: [
+            {
+                choices: [
+                    {
+                        selection: 1
+                    },
+                    {
+                        selection: 2
+                    },
+                    {
+                        selection: 3
+                    },
+                    {
+                        selection: 4
+                    }
+                ]
+            }
+        ]
+    };
+    let vote2Json = {
+        encryptionSeed: 54321,
+        ballotVotes: [
+            {
+                choices: [
+                    {
+                        selection: 1
+                    },
+                    {
+                        selection: 1
+                    },
+                    {
+                        selection: 3
+                    },
+                    {
+                        selection: 3
+                    }
+                ]
+            }
+        ]
     };
 
-    let vote1 = await election.generateEncryptedVote(voteConfig);
-    let vote2 = await election.generateEncryptedVote(voteConfig);
-
-    let accounts = web3.eth.accounts;
+    let vote1 = await election.toEncryptedVote(vote1Json);
+    let vote2 = await election.toEncryptedVote(vote2Json);
 
     let config = await election.doEndToEndElection({
         account: {
