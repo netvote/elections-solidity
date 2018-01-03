@@ -13,6 +13,7 @@
     "networks": "truffle networks",
     "test-norpc": "truffle test --network development",
     "test": "run-with-testrpc -l 20000000 'truffle test --network testing'",
+    "test-gas": "run-with-testrpc -l 20000000 'truffle test --network testing ./test-gas/test-gas.js'",
     "coverage": "solidity-coverage"
   },
   "keywords": [
