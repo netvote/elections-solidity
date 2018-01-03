@@ -392,39 +392,11 @@ contract('GAS: Tiered Election GAS Analysis', function (accounts) {
             "optionsPerBallot": 1,
             "writeInCount": 0,
             "voteGasLimit": 233968
-        },
-        {
-            "ballotCount": 2,
-            "poolCount": 1,
-            "optionsPerBallot": 20,
-            "writeInCount": 0,
-            "voteGasLimit": 481431
-        },
-        {
-            "ballotCount": 3,
-            "poolCount": 1,
-            "optionsPerBallot": 10,
-            "writeInCount": 2,
-            "voteGasLimit": 532311
-        },
-        {
-            "ballotCount": 3,
-            "poolCount": 1,
-            "optionsPerBallot": 20,
-            "writeInCount": 0,
-            "voteGasLimit": 621383
-        },
-        {
-            "ballotCount": 3,
-            "poolCount": 1,
-            "optionsPerBallot": 20,
-            "writeInCount": 2,
-            "voteGasLimit": 644147
         }
     ];
 
     scenarios.forEach(async (scenario)=> {
-        it.skip("should use less than "+(threshold+scenario.voteGasLimit)+" gas (ballot="+scenario.ballotCount+", options="+scenario.optionsPerBallot+", writeIns="+scenario.writeInCount+")", async function () {
+        it("should use less than "+(threshold+scenario.voteGasLimit)+" gas (ballot="+scenario.ballotCount+", options="+scenario.optionsPerBallot+", writeIns="+scenario.writeInCount+")", async function () {
             let config = {
                 account: {
                     allowance: 2,

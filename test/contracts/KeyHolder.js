@@ -86,16 +86,4 @@ contract('KeyHolder', function (accounts) {
         }, Error, "should throw Error")
     });
 
-    it("should require closed to reveal private key - active", async function () {
-        await keyHolder.activate();
-        await assertThrowsAsync(async function(){
-            await keyHolder.setPrivateKey("key", {from: revealer});
-        }, Error, "should throw Error")
-    });
-
-    it("should require closed to reveal private key - building", async function () {
-        await assertThrowsAsync(async function(){
-            await keyHolder.setPrivateKey("key", {from: revealer});
-        }, Error, "should throw Error")
-    })
 });

@@ -46,12 +46,12 @@ contract KeyHolder is ElectionPhaseable {
     }
 
     //TODO: instead of from admin, this should be only key writer (specified address)
-    function setPublicKey(string key) public building onlyRevealer {
+    function setPublicKey(string key) public onlyRevealer {
         publicKey = key;
     }
 
     //TODO: instead of from admin, this should be only key writer (specified address)
-    function setPrivateKey(string key) public closed onlyRevealer {
+    function setPrivateKey(string key) public onlyRevealer {
         privateKey = key;
         KeyReleased();
     }
