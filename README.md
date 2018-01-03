@@ -45,6 +45,21 @@ npm run lint
 npm run coverage
 ```
 
+Contributing
+-------------------
+
+### Style Guide
+We're using the official Solidity style guide.
+https://solidity.readthedocs.io/en/latest/style-guide.html
+
+### Process
+1. Fork repo
+2. Make desired changes
+3. Submit PR (Reference Issue #)
+4. Ensure Tests Pass
+5. Reviewer will review
+6. Reviewer Squash + Merges PR
+
 License
 -------
-All smart contracts are released under GPL v3.
+All code is released under GPL v3.
