@@ -3,7 +3,7 @@ Netvote Smart Contracts
 
 <img src="https://s3.amazonaws.com/netvote-docs/nv.png" alt="Logo"  height="25%" width="25%"/>
 
-Collection of smart contracts for the Netvote Voting System.
+Collection of smart contracts for the Netvote Voting System.  Information and white paper at https://netvote.io
 
 ## Getting Started
 
@@ -52,7 +52,7 @@ Contributing
 We're using the official Solidity style guide.
 https://solidity.readthedocs.io/en/latest/style-guide.html
 
-### Process
+### Contribution Process
 1. Fork repo
 2. Make desired changes
 3. Submit PR (Reference Issue #)
@@ -62,4 +62,4 @@ https://solidity.readthedocs.io/en/latest/style-guide.html
 
 License
 -------
-All code is released under GPL v3.
+All code is released under the <a href='https://www.gnu.org/licenses/gpl-3.0.en.html'>GNU General Public License v3.0</a>.
