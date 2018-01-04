@@ -32,8 +32,8 @@ let assertThrowsAsync = async (fn, regExp) => {
     }
 };
 
-let assertCheckConfig = async (pool, expected) =>{
-    let checked = await pool.checkConfig();
+let assertCheckConfig = async (ballot, expected) =>{
+    let checked = await ballot.checkConfig();
     assert.equal(checked, expected, "checkConfig should have been "+expected)
 };
 
@@ -116,29 +116,29 @@ contract('TieredBallot', function (accounts) {
     it("should allow correct config", async function () {
         await linkElection();
         await linkValidPool();
-        await assertCheckConfig(pool1, true);
+        await assertCheckConfig(ballot, true);
     });
 
     it("should require pools", async function () {
         await linkElection();
-        await assertCheckConfig(pool1, false);
+        await assertCheckConfig(ballot, false);
     });
 
     it("should require same election", async function () {
         await linkElection();
         await linkInvalidPool();
-        await assertCheckConfig(pool1, false);
+        await assertCheckConfig(ballot, false);
     });
 
     it("should require pool to point to this ballot", async function () {
         await linkElection();
-        await pool1.addBallot(ballot.address, {from: owner});
-        await assertCheckConfig(pool1, false);
+        await ballot.addPool(pool1.address, {from: owner});
+        await assertCheckConfig(ballot, false);
     });
 
     it("should require election to link ballot", async function () {
         await linkValidPool();
-        await assertCheckConfig(pool1, false);
+        await assertCheckConfig(ballot, false);
     });
 
 });

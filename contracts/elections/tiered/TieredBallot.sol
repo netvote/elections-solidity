@@ -106,10 +106,6 @@ contract TieredBallot is BaseBallot, PoolRegistry {
             if (TieredPool(poolSet.getAt(i)).election() != election) {
                 return false;
             }
-            // election has the pool
-            if (!TieredElection(election).poolExists(poolSet.getAt(i))) {
-                return false;
-            }
         }
         return true;
     }
