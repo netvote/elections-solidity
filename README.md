@@ -2,6 +2,7 @@ Netvote Smart Contracts
 ======================
 [![Build Status](https://travis-ci.org/netvote/elections-solidity.svg?branch=master")](https://travis-ci.org/netvote/elections-solidity)
 [![Coverage Status](https://codecov.io/gh/netvote/elections-solidity/branch/master/graph/badge.svg)](https://codecov.io/gh/netvote/elections-solidity)
+
 <img src="https://s3.amazonaws.com/netvote-docs/nv.png" alt="Logo"  height="35%" width="35%"/>
 
 Collection of smart contracts for the Netvote Voting System.  Information and white paper at https://netvote.io
