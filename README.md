@@ -1,7 +1,7 @@
 Netvote Smart Contracts
 ======================
-
-<img src="https://s3.amazonaws.com/netvote-docs/nv.png" alt="Logo"  height="25%" width="25%"/>
+<img src="https://travis-ci.org/netvote/elections-solidity.svg?branch=master" alt="BuildStatus"/>
+<img src="https://s3.amazonaws.com/netvote-docs/nv.png" alt="Logo"  height="35%" width="35%"/>
 
 Collection of smart contracts for the Netvote Voting System.  Information and white paper at https://netvote.io
 
