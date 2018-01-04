@@ -9,9 +9,12 @@ cache:
     - node_modules
 matrix:
   fast_finish: true
+before_install:
+  - npm install -g npm codecov
 before_script:
   - truffle version
 script:
   - npm run lint
   - npm run coverage
+  - codecov
   - npm run test-gas
