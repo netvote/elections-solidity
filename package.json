@@ -1,5 +1,5 @@
 {
-  "name": "elections",
+  "name": "elections-solidity",
   "version": "1.0.0",
   "description": "Elections Contracts",
   "main": "truffle-config.js",
@@ -25,14 +25,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/netvote/elections.git"
+    "url": "git+https://github.com/netvote/elections-solidity.git"
   },
   "author": "steven@netvote.io",
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/netvote/elections/issues"
+    "url": "https://github.com/netvote/elections-solidity/issues"
   },
-  "homepage": "https://github.com/netvote/elections#readme",
+  "homepage": "https://github.com/netvote/elections-solidity#readme",
   "dependencies": {
     "crypto2": "^0.3.2",
     "protobufjs": "^6.8.3",
