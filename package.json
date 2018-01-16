@@ -1,5 +1,5 @@
 {
-  "name": "elections-solidity",
+  "name": "@netvote/elections-solidity",
   "version": "1.0.0",
   "description": "Elections Contracts",
   "main": "truffle-config.js",
@@ -14,7 +14,8 @@
     "test-norpc": "truffle test --network development",
     "test": "run-with-testrpc -l 20000000 'truffle test --network testing'",
     "test-gas": "run-with-testrpc -l 20000000 'truffle test --network testing ./test-gas/test-gas.js'",
-    "coverage": "node_modules/.bin/run-with-testrpc -l 20000000 'node_modules/.bin/solidity-coverage'"
+    "coverage": "node_modules/.bin/run-with-testrpc -l 20000000 'node_modules/.bin/solidity-coverage'",
+    "prepublish": "npm run compile"
   },
   "keywords": [
     "Ethereum",
