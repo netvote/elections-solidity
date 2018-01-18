@@ -36,16 +36,13 @@ contract BaseElection is KeyHolder, ReentrancyGuard {
     address allowanceAccount;
     bool public allowVoteUpdates;
     string public electionType;
-    string public createdBy;
 
     function BaseElection(
-        string createdById,
         address allowanceAddress,
         address acct,
         bool allowUpdates,
         address revealer) KeyHolder(revealer) public
     {
-        createdBy = createdById;
         allowance = VoteAllowance(allowanceAddress);
         allowanceAccount = acct;
         allowVoteUpdates = allowUpdates;

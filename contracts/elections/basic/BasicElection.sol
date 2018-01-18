@@ -50,7 +50,7 @@ contract BasicElection is BasePool, BaseBallot, BaseElection {
         address revealerAddress,
         string location,
         address gatewayAddress,
-        bool autoActivate) BaseElection(createdById, allowanceAddress, ownerOfAllowance, allowUpdates, revealerAddress) BaseBallot(msg.sender, location) BasePool(this, gatewayAddress) public
+        bool autoActivate) BaseElection(allowanceAddress, ownerOfAllowance, allowUpdates, revealerAddress) BaseBallot(msg.sender, location) BasePool(createdById, this, gatewayAddress) public
     {
         electionType = "BASIC";
         //pool lists this so it will comply with tally api contract (like tiered election)

@@ -35,6 +35,7 @@ contract BasePool is BallotRegistry {
     Bytes32Set.SetData voteIdSet;
 
     address public election;
+    string public createdBy;
 
     // events
     event Vote(bytes32 voteId);
@@ -45,8 +46,9 @@ contract BasePool is BallotRegistry {
 
     address public gateway;
 
-    function BasePool(address el, address gw) public {
+    function BasePool(string createdById, address el, address gw) public {
         require(el != address(0) && gw != address(0));
+        createdBy = createdById;
         election = el;
         gateway = gw;
     }
