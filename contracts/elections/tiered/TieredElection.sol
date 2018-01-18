@@ -33,15 +33,17 @@ contract TieredElection is BaseElection, BallotRegistry, PoolRegistry {
 
     /**
      * @dev Create an election
+     * @param createdById string reference for external systems (not for contract code)
      * @param allowanceAddress address of Netvote VoteAllowance contract
      * @param acct address of account from whom to deduct votes from
      * @param allowUpdates allow voters to update votes after voting
      */
     function TieredElection(
+        string createdById,
         address allowanceAddress,
         address acct,
         bool allowUpdates,
-        address revealer) BaseElection(allowanceAddress, acct, allowUpdates, revealer) public
+        address revealer) BaseElection(createdById, allowanceAddress, acct, allowUpdates, revealer) public
     {
         electionType = "TIERED";
     }

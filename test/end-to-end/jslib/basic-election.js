@@ -134,7 +134,7 @@ let setupVoteAllowance = async(config) => {
 
 let createBasicElection = async(config) => {
     log("create election");
-    config.contract = await BasicElection.new(config.allowanceContract.address, config.account.owner, config.allowUpdates, config.netvote, config.metadata, config.gateway, config.autoActivate, {from: config.admin });
+    config.contract = await BasicElection.new("uuid", config.allowanceContract.address, config.account.owner, config.allowUpdates, config.netvote, config.metadata, config.gateway, config.autoActivate, {from: config.admin });
     config = await measureGas(config, "Create Basic Election");
     await config.allowanceContract.addElection(config.contract.address, {from: config.account.owner});
     config = await measureGas(config, "Allowance: authorize election");
