@@ -31,7 +31,7 @@ import "./TieredElection.sol";
  */
 contract TieredPool is BasePool {
 
-    function TieredPool(address el, address gw) BasePool(el, gw) public {
+    function TieredPool(string createdById, address el, address gw) BasePool(createdById, el, gw) public {
 
     }
 

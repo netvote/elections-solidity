@@ -146,7 +146,7 @@ let createElection = async(config) => {
     log("create election");
     let va = await VoteAllowance.new({from: config.netvote});
     await va.addVotes(config.account.owner, config.account.allowance, {from: config.netvote});
-    config.contract = await TieredElection.new("uuid", va.address, config.account.owner, config.allowUpdates, config.netvote, {from: config.admin });
+    config.contract = await TieredElection.new(va.address, config.account.owner, config.allowUpdates, config.netvote, {from: config.admin });
     config = await measureGas(config, "Create Tiered Election");
     await va.addElection(config.contract.address, {from: config.account.owner});
     config = await measureGas(config, "Authorize Election for Allowance");
@@ -181,7 +181,7 @@ let createPools = async(config) => {
         if (config.pools.hasOwnProperty(name)) {
             let poolConfig = config.pools[name];
             let admin = poolConfig.admin;
-            let pool = await TieredPool.new(config.contract.address, config.gateway, {from: admin});
+            let pool = await TieredPool.new("uuid", config.contract.address, config.gateway, {from: admin});
             config = await measureGas(config, "Create Tiered Pool");
             config.pools[name].contract = pool;
 
