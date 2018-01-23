@@ -218,6 +218,7 @@ module.exports = {
     doEndToEndElectionAutoActivate,
     generateEncryptedVote,
     toEncryptedVote,
+    toEncodedVote,
     doTransactions,
     createBasicElection,
     setupVoteAllowance,
