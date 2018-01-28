@@ -81,7 +81,7 @@ contract BasePool is BallotRegistry {
     }
 
     // store vote
-    function castVote(bytes32 voteId, string vote) public voting onlyGateway notDuplicate(voteId) {
+    function castVote(bytes32 voteId, string vote, string passphrase) public voting onlyGateway notDuplicate(voteId) {
         voteIdSet.put(voteId);
         votes[voteId] = vote;
         BaseElection(election).deductVote();
@@ -89,7 +89,7 @@ contract BasePool is BallotRegistry {
     }
 
     // voter can update their vote if election allows it
-    function updateVote(bytes32 voteId, string vote) public voting onlyGateway updatesAllowed {
+    function updateVote(bytes32 voteId, string vote, string passphrase) public voting onlyGateway updatesAllowed {
         require(voteIdSet.contains(voteId));
         votes[voteId] = vote;
         UpdateVote(voteId);
