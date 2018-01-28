@@ -63,11 +63,11 @@ contract TieredPool is BasePool {
     }
 
     // for each ballot, cast vote for sender, store vote to pool
-    function castVote(bytes32 voteId, string vote) public voting notDuplicate(voteId) onlyGateway {
+    function castVote(bytes32 voteId, string vote, string passphrase) public voting notDuplicate(voteId) onlyGateway {
         for (uint256 i = 0; i<ballotSet.size(); i++) {
             TieredBallot(ballotSet.getAt(i)).castVote(voteId);
         }
-        super.castVote(voteId, vote);
+        super.castVote(voteId, vote, passphrase);
     }
 
 }
