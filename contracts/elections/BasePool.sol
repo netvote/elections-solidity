@@ -21,7 +21,7 @@ pragma solidity ^0.4.17;
 
 import "./BaseElection.sol";
 import "./links/BallotRegistry.sol";
-import "../lib/Bytes32Set.sol";
+import "../lib/NoRemovalBytes32Set.sol";
 
 
 /**
@@ -30,9 +30,9 @@ import "../lib/Bytes32Set.sol";
  * This maps a set of ballots for the purposes of ballot iteration.
  */
 contract BasePool is BallotRegistry {
-    using Bytes32Set for Bytes32Set.SetData;
+    using NoRemovalBytes32Set for NoRemovalBytes32Set.SetData;
 
-    Bytes32Set.SetData voteIdSet;
+    NoRemovalBytes32Set.SetData voteIdSet;
 
     address public election;
     string public createdBy;
