@@ -46,9 +46,6 @@ contract TestNoRemovalBytes32Set {
         set.put(testData2);
         Assert.equal(set.size(), 2, "expected size of 2");
 
-        // this is OK because contains() and size()-based iteration should be used instead
-        Assert.equal(set.indexOf(notIncluded), 0, "expected index 0");
-
         //getAt
         Assert.equal(set.getAt(0), testData1, "expected testData1");
         Assert.equal(set.getAt(1), testData2, "expected testData2");
