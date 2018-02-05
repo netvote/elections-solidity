@@ -63,6 +63,7 @@ contract('GAS: Basic Election GAS Analysis', function (accounts) {
                 config.voters.voter1.vote = await election.generateEncryptedVote(scenario);
                 config.autoActivate = autoActivate;
                 config = await election.doEndToEndElection(config);
+                console.log("gas="+config["gasAmount"]["Cast Vote"]);
                 assert.equal(config["gasAmount"]["Cast Vote"] <= scenario.voteGasLimit, true, "Vote Gas Limit Exceeded, limit="+scenario.voteGasLimit+", actual="+config["gasAmount"]["Cast Vote"])
             });
         });
@@ -158,7 +159,7 @@ contract('GAS: Tiered Election GAS Analysis', function (accounts) {
 
             config.gasAmount = {};
             config = await election.doEndToEndElection(config);
-
+            console.log("gas="+config["gasAmount"]["Cast Vote"]);
             assert.equal(config["gasAmount"]["Cast Vote"] <= (threshold + scenario.voteGasLimit), true, "Vote Gas Limit Exceeded, limit="+scenario.voteGasLimit+", actual="+config["gasAmount"]["Cast Vote"])
         });
     });
