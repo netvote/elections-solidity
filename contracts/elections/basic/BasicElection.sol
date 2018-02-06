@@ -33,7 +33,7 @@ contract BasicElection is BasePool, BaseBallot, BaseElection {
 
     /**
       * @dev Constructor for creating a BasicElection
-      * @param createdById string reference for external systems (not for contract code)
+      * @param hashedUserId bytes32 sha3 hash of external userId
       * @param allowanceAddress The address of global allowance contract.
       * @param ownerOfAllowance The owner of the Vote Allowance to deduct from.
       * @param allowUpdates Whether to allow Voters to update their vote.
@@ -43,14 +43,14 @@ contract BasicElection is BasePool, BaseBallot, BaseElection {
       * @param autoActivate Automatically activate this election to allow votes
       */
     function BasicElection(
-        string createdById,
+        bytes32 hashedUserId,
         address allowanceAddress,
         address ownerOfAllowance,
         bool allowUpdates,
         address revealerAddress,
         string location,
         address gatewayAddress,
-        bool autoActivate) BaseElection(allowanceAddress, ownerOfAllowance, allowUpdates, revealerAddress) BaseBallot(msg.sender, location) BasePool(createdById, this, gatewayAddress) public
+        bool autoActivate) BaseElection(hashedUserId, allowanceAddress, ownerOfAllowance, allowUpdates, revealerAddress) BaseBallot(msg.sender, location) BasePool(hashedUserId, this, gatewayAddress) public
     {
         electionType = "BASIC";
         //pool lists this so it will comply with tally api contract (like tiered election)

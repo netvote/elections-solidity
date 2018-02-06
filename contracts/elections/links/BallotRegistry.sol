@@ -29,7 +29,7 @@ import "../../lib/AddressSet.sol";
  * which prevents duplicates and allows for removal.
  * Note: Order is not guaranteed.
  */
-contract BallotRegistry is Adminable, ElectionPhaseable {
+contract BallotRegistry is ElectionPhaseable {
     using AddressSet for AddressSet.SetData;
 
     AddressSet.SetData ballotSet;

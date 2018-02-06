@@ -38,10 +38,11 @@ contract TieredElection is BaseElection, BallotRegistry, PoolRegistry {
      * @param allowUpdates allow voters to update votes after voting
      */
     function TieredElection(
+        bytes32 hashedUserId,
         address allowanceAddress,
         address acct,
         bool allowUpdates,
-        address revealer) BaseElection(allowanceAddress, acct, allowUpdates, revealer) public
+        address revealer) BaseElection(hashedUserId, allowanceAddress, acct, allowUpdates, revealer) public
     {
         electionType = "TIERED";
     }

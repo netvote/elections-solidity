@@ -20,6 +20,7 @@
 pragma solidity ^0.4.17;
 
 import "./VoteAllowance.sol";
+import "../auth/ExternalAuthorizable.sol";
 import "./links/BallotRegistry.sol";
 import "./links/PoolRegistry.sol";
 import "../encryption/KeyHolder.sol";
@@ -30,7 +31,7 @@ import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
  * @title BaseElection
  * @dev A base contract that transacts vote allowance and allows a key to be released
  */
-contract BaseElection is KeyHolder, ReentrancyGuard {
+contract BaseElection is ExternalAuthorizable, KeyHolder, ReentrancyGuard {
 
     VoteAllowance allowance;
     address allowanceAccount;
@@ -38,11 +39,13 @@ contract BaseElection is KeyHolder, ReentrancyGuard {
     string public electionType;
 
     function BaseElection(
+        bytes32 hashedUserId,
         address allowanceAddress,
         address acct,
         bool allowUpdates,
         address revealer) KeyHolder(revealer) public
     {
+        addAuthorized(hashedUserId);
         allowance = VoteAllowance(allowanceAddress);
         allowanceAccount = acct;
         allowVoteUpdates = allowUpdates;

@@ -69,7 +69,7 @@ contract('TieredPool', function (accounts) {
         gateway = accounts[3];
         allowance = accounts[4];
         let otherElection = accounts[5];
-        election = await TieredElection.new(allowance, owner, false, gateway, {from: owner});
+        election = await TieredElection.new("uuid", allowance, owner, false, gateway, {from: owner});
         pool = await TieredPool.new("uuid", election.address, gateway, {from: owner});
         ballot = await TieredBallot.new(election.address, owner, "test", {from: owner});
         ballot2 = await TieredBallot.new(otherElection, owner, "test", {from: owner});
