@@ -21,6 +21,7 @@ pragma solidity ^0.4.17;
 
 import "./BaseElection.sol";
 import "./links/BallotRegistry.sol";
+import "../auth/ExternalAuthorizable.sol";
 import "../lib/NoRemovalBytes32Set.sol";
 
 
@@ -29,7 +30,7 @@ import "../lib/NoRemovalBytes32Set.sol";
  * @dev A base contract receives and stores votes from a gateway address.
  * This maps a set of ballots for the purposes of ballot iteration.
  */
-contract BasePool is BallotRegistry {
+contract BasePool is ExternalAuthorizable, BallotRegistry {
     using NoRemovalBytes32Set for NoRemovalBytes32Set.SetData;
 
     NoRemovalBytes32Set.SetData voteIdSet;
@@ -46,9 +47,9 @@ contract BasePool is BallotRegistry {
 
     address public gateway;
 
-    function BasePool(string createdById, address el, address gw) public {
+    function BasePool(bytes32 hashedUserId, address el, address gw) public {
         require(el != address(0) && gw != address(0));
-        createdBy = createdById;
+        addAuthorized(hashedUserId);
         election = el;
         gateway = gw;
     }

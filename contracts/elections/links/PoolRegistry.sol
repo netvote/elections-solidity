@@ -29,7 +29,7 @@ import "../../lib/AddressSet.sol";
  * which prevents duplicates and allows for removal.
  * Note: Order is not guaranteed.
  */
-contract PoolRegistry is Adminable, ElectionPhaseable {
+contract PoolRegistry is ElectionPhaseable {
     using AddressSet for AddressSet.SetData;
 
     AddressSet.SetData poolSet;
