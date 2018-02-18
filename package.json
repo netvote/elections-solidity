@@ -46,6 +46,6 @@
   },
   "devDependencies": {
     "solidity-coverage": "^0.4.5",
-    "truffle": "^4.0.1"
+    "truffle": "^4.0.6"
   }
 }

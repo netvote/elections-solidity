@@ -17,7 +17,7 @@
 // (c) 2017 netvote contributors.
 //------------------------------------------------------------------------------
 
-const election = require("./jslib/basic-election.js");
+const election = require("../../test-js-lib/basic-election.js");
 
 contract('Unactivated Election', function (accounts) {
     let config;
