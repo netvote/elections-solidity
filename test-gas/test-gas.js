@@ -1,7 +1,6 @@
 contract('GAS: Basic Election GAS Analysis', function (accounts) {
 
-    const election = require("../test/end-to-end/jslib/basic-election.js");
-
+    const election = require("../test-js-lib/basic-election.js");
 
     let scenarios = [
         {
@@ -73,8 +72,7 @@ contract('GAS: Basic Election GAS Analysis', function (accounts) {
 
 contract('GAS: Tiered Election GAS Analysis', function (accounts) {
 
-    const election = require("../test/end-to-end/jslib/tiered-election.js");
-
+    const election = require("../test-js-lib/tiered-election.js");
 
     let threshold = 25000;
 
