@@ -24,6 +24,7 @@ import "zeppelin-solidity/contracts/token/MintableToken.sol";
 import "zeppelin-solidity/contracts/token/BurnableToken.sol";
 import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
 
+
 /**
  * @title Vote
  * @dev Token for voting
