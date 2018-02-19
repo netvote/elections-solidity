@@ -3,7 +3,7 @@ const crypto = require('crypto');
 let TieredElection;
 let TieredBallot;
 let TieredPool;
-let VoteAllowance;
+let Vote;
 const ENCRYPT_ALGORITHM = "aes-256-cbc";
 const ENCRYPT_KEY = "123e4567e89b12d3a456426655440000";
 
@@ -20,10 +20,10 @@ let initContracts = (provider) => {
     TieredBallot = contract(require("../../../build/contracts/TieredBallot.json"));
     TieredPool = contract(require("../../../build/contracts/TieredPool.json"));
 
-    VoteAllowance = contract(require("../../../build/contracts/VoteAllowance.json"));
+    Vote = contract(require("../../../build/contracts/Vote.json"));
     let p = new Web3.providers.HttpProvider(provider);
 
-    [TieredElection, TieredBallot, TieredPool, VoteAllowance].forEach(async (c)=> {
+    [TieredElection, TieredBallot, TieredPool, Vote].forEach(async (c)=> {
         c.setProvider(p);
         c.defaults({
             gas: 4712388,
@@ -37,7 +37,7 @@ let initTestContracts = () => {
         TieredElection = artifacts.require("TieredElection");
         TieredBallot = artifacts.require("TieredBallot");
         TieredPool = artifacts.require("TieredPool");
-        VoteAllowance = artifacts.require("VoteAllowance");
+        Vote = artifacts.require("Vote");
     }
 };
 
@@ -141,14 +141,24 @@ let getVotesByGroup = async (ballot, group) => {
     return votes;
 };
 
+let setupVoteToken = async(config) => {
+    log("setup vote allowance");
+    let va = await Vote.new({from: config.netvote});
+    config.allowanceContract = va;
+    await va.mint(config.account.owner, web3.toWei(50, "ether"), {from: config.netvote});
+    return config;
+};
+
 // 1
 let createElection = async(config) => {
     log("create election");
-    let va = await VoteAllowance.new({from: config.netvote});
-    await va.addVotes(config.account.owner, config.account.allowance, {from: config.netvote});
-    config.contract = await TieredElection.new("uuid", va.address, config.account.owner, config.allowUpdates, config.netvote, {from: config.admin });
+    config.contract = await TieredElection.new("uuid", config.allowanceContract.address, config.account.owner, config.allowUpdates, config.netvote, {from: config.admin });
     config = await measureGas(config, "Create Tiered Election");
-    await va.addElection(config.contract.address, {from: config.account.owner});
+    let numVotes = 25;
+    if(config.voters){
+        numVotes = Object.keys(config.voters).length;
+    }
+    await config.allowanceContract.transfer(config.contract.address, web3.toWei(numVotes+1, 'ether'), {from: config.account.owner})
     config = await measureGas(config, "Authorize Election for Allowance");
     return config;
 };
@@ -311,6 +321,7 @@ let printGas = (config) => {
 let doEndToEndElection = async(config) => {
 
     return await doTransactions([
+        setupVoteToken,
         createElection,
         createBallots,
         createPools,
@@ -326,6 +337,7 @@ let doEndToEndElection = async(config) => {
 };
 
 module.exports = {
+    setupVoteToken,
     doEndToEndElection,
     generateEncryptedVote,
     toEncryptedVote,

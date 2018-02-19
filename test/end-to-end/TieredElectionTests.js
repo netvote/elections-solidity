@@ -67,6 +67,7 @@ contract('Tiered Election: Configuration TX', function (accounts) {
         };
 
         await election.doTransactions([
+            election.setupVoteToken,
             election.createElection,
             election.createBallots,
             election.createPools

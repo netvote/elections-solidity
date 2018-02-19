@@ -47,7 +47,7 @@ contract('Unactivated Election', function (accounts) {
         };
 
         config = await election.doTransactions([
-            election.setupVoteAllowance,
+            election.setupVoteToken,
             election.createBasicElection
         ], basicConfig);
     });
@@ -121,8 +121,8 @@ contract('Auto-Activating Basic Election', function (accounts) {
     });
 
     it("should have 1 vote left", async function () {
-        let votesLeft = await config.allowanceContract.allowance(config.account.owner);
-        assert.equal(votesLeft, 1, "expected 1 vote left (3 - 2 = 1)");
+        let votesLeft = await config.allowanceContract.balanceOf(config.contract.address);
+        assert.equal(votesLeft.toNumber(), web3.toWei(1, 'ether'), "expected 1 vote left (3 - 2 = 1)");
     });
 });
 
@@ -185,8 +185,8 @@ contract('Auto-Activating Basic Election with Updates', function (accounts) {
     });
 
     it("should have 1 vote left", async function () {
-        let votesLeft = await config.allowanceContract.allowance(config.account.owner);
-        assert.equal(votesLeft, 1, "expected 1 vote left (3 - 2 = 1)");
+        let votesLeft = await config.allowanceContract.balanceOf(config.contract.address);
+        assert.equal(votesLeft.toNumber(), web3.toWei(1, 'ether'), "expected 1 vote left (3 - 2 = 1)");
     });
 });
 
@@ -259,8 +259,8 @@ contract('Basic Election', function (accounts) {
     });
 
     it("should have 1 vote left", async function () {
-        let votesLeft = await config.allowanceContract.allowance(config.account.owner);
-        assert.equal(votesLeft, 1, "expected 1 vote left (3 - 2 = 1)");
+        let votesLeft = await config.allowanceContract.balanceOf(config.contract.address);
+        assert.equal(votesLeft.toNumber(), web3.toWei(1, 'ether'), "expected 1 vote left (3 - 2 = 1)");
     });
 });
 
