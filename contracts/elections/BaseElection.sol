@@ -19,7 +19,7 @@
 
 pragma solidity ^0.4.17;
 
-import "./VoteAllowance.sol";
+import "../token/Vote.sol";
 import "../auth/ExternalAuthorizable.sol";
 import "./links/BallotRegistry.sol";
 import "./links/PoolRegistry.sol";
@@ -33,25 +33,25 @@ import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
  */
 contract BaseElection is ExternalAuthorizable, KeyHolder, ReentrancyGuard {
 
-    VoteAllowance allowance;
+    Vote public voteTokenContract;
     address allowanceAccount;
     bool public allowVoteUpdates;
     string public electionType;
 
     function BaseElection(
         bytes32 hashedUserId,
-        address allowanceAddress,
+        address tokenContractAddress,
         address acct,
         bool allowUpdates,
         address revealer) KeyHolder(revealer) public
     {
         addAuthorized(hashedUserId);
-        allowance = VoteAllowance(allowanceAddress);
+        voteTokenContract = Vote(tokenContractAddress);
         allowanceAccount = acct;
         allowVoteUpdates = allowUpdates;
     }
 
     function deductVote() public voting nonReentrant {
-        allowance.deduct(allowanceAccount);
+        voteTokenContract.spendVote();
     }
 }
