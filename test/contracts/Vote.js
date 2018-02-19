@@ -56,7 +56,7 @@ contract('Vote', function (accounts) {
         admin = accounts[1];
         election = accounts[2];
         vote = await Vote.new({from: netvote});
-        await vote.mint(netvote, toWei(50));
+        await vote.mint(netvote, toWei(50), {from: netvote});
     });
 
     it("should start with only netvote with balance", async function () {
@@ -92,6 +92,13 @@ contract('Vote', function (accounts) {
         await vote.transfer(admin, toWei(1), {from: netvote});
         await vote.transfer(election, toWei(1), {from: admin});
         await vote.lock({from: netvote});
+        await assertThrowsAsync(async function(){
+            await vote.spendVote({from: election});
+        }, Error, "should throw Error")
+    });
+
+    it("should not allow spendVote with no balance", async function () {
+        await vote.transfer(admin, toWei(1), {from: netvote});
         await assertThrowsAsync(async function(){
             await vote.spendVote({from: election});
         }, Error, "should throw Error")

@@ -129,7 +129,6 @@ let setupVoteToken = async(config) => {
     let va = await Vote.new({from: config.netvote});
     config.allowanceContract = va;
     await va.mint(config.account.owner, web3.toWei(50, "ether"), {from: config.netvote});
-    console.log("minted");
     return config;
 };
 
