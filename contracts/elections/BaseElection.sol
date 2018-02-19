@@ -33,7 +33,7 @@ import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
  */
 contract BaseElection is ExternalAuthorizable, KeyHolder, ReentrancyGuard {
 
-    Vote public voteTokenContract;
+    Vote public voteToken;
     address allowanceAccount;
     bool public allowVoteUpdates;
     string public electionType;
@@ -46,12 +46,26 @@ contract BaseElection is ExternalAuthorizable, KeyHolder, ReentrancyGuard {
         address revealer) KeyHolder(revealer) public
     {
         addAuthorized(hashedUserId);
-        voteTokenContract = Vote(tokenContractAddress);
+        voteToken = Vote(tokenContractAddress);
         allowanceAccount = acct;
         allowVoteUpdates = allowUpdates;
     }
 
+    function updateAllowanceAcct(address acct) public admin {
+        allowanceAccount = acct;
+    }
+
+    function withdrawAllVotes() public {
+        require(msg.sender == allowanceAccount);
+        voteToken.transfer(allowanceAccount, voteToken.balanceOf(this));
+    }
+
+    function withdrawVotes(uint256 value) public {
+        require(msg.sender == allowanceAccount);
+        voteToken.transfer(allowanceAccount, value);
+    }
+
     function deductVote() public voting nonReentrant {
-        voteTokenContract.spendVote();
+        voteToken.spendVote();
     }
 }
