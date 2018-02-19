@@ -56,7 +56,7 @@ contract('Vote', function (accounts) {
         admin = accounts[1];
         election = accounts[2];
         vote = await Vote.new({from: netvote});
-        await vote.mint(netvote, toWei(50));
+        await vote.mint(netvote, toWei(50), {from: netvote});
     });
 
     it("should start with only netvote with balance", async function () {
