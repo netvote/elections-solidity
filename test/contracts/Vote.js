@@ -97,4 +97,11 @@ contract('Vote', function (accounts) {
         }, Error, "should throw Error")
     });
 
+    it("should not allow spendVote with no balance", async function () {
+        await vote.transfer(admin, toWei(1), {from: netvote});
+        await assertThrowsAsync(async function(){
+            await vote.spendVote({from: election});
+        }, Error, "should throw Error")
+    });
+
 });

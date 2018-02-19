@@ -22,20 +22,19 @@ pragma solidity ^0.4.18;
 import "../state/Lockable.sol";
 import "zeppelin-solidity/contracts/token/MintableToken.sol";
 import "zeppelin-solidity/contracts/token/BurnableToken.sol";
-import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
 
 
 /**
  * @title Vote
  * @dev Token for voting
  */
-contract Vote is Lockable, ReentrancyGuard, MintableToken, BurnableToken {
+contract Vote is Lockable, MintableToken, BurnableToken {
     string public name = "VOTE";
     string public symbol = "VOTE";
     uint8 public decimals = 18;
     event Vote(address election);
 
-    function spendVote() public unlocked nonReentrant {
+    function spendVote() public unlocked {
         require(balances[msg.sender] >= 1 ether);
         burn(1 ether);
         Vote(msg.sender);
