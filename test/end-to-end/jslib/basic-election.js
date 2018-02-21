@@ -126,9 +126,9 @@ let printGas = (config) => {
 
 let setupVoteToken = async(config) => {
     log("setup vote allowance");
-    let va = await Vote.new({from: config.netvote});
+    let va = await Vote.new(config.netvote, 5, {from: config.netvote});
     config.allowanceContract = va;
-    await va.mint(config.account.owner, web3.toWei(50, "ether"), {from: config.netvote});
+    await va.mint(config.account.owner, 50, {from: config.netvote});
     return config;
 };
 
@@ -140,7 +140,7 @@ let createBasicElection = async(config) => {
     if(config.voters){
         numVotes = Object.keys(config.voters).length;
     }
-    await config.allowanceContract.transfer(config.contract.address, web3.toWei(numVotes+1, 'ether'), {from: config.account.owner})
+    await config.allowanceContract.transfer(config.contract.address, numVotes+1, {from: config.account.owner})
     config = await measureGas(config, "Allowance: authorize election");
     return config;
 };

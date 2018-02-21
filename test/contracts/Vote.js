@@ -30,24 +30,22 @@ let assertThrowsAsync = async (fn, regExp) => {
     }
 };
 
-contract('Vote', function (accounts) {
+contract('Vote with generation', function (accounts) {
     let netvote;
     let admin;
     let election;
     let vote;
-
-    let toWei = (num) => {
-        return web3.toWei(num, 'ether')
-    };
+    let stake;
+    let generationCount = 5;
 
     let assertBalance = async (addr, expected) => {
         let bal = await vote.balanceOf(addr);
-        assert.equal(bal.toNumber(), toWei(expected));
+        assert.equal(bal.toNumber(), expected);
     };
 
     let assertSupply = async (expected) => {
         let bal = await vote.totalSupply();
-        assert.equal(bal.toNumber(), toWei(expected));
+        assert.equal(bal.toNumber(), expected);
     };
 
 
@@ -55,8 +53,9 @@ contract('Vote', function (accounts) {
         netvote = accounts[0];
         admin = accounts[1];
         election = accounts[2];
-        vote = await Vote.new({from: netvote});
-        await vote.mint(netvote, toWei(50), {from: netvote});
+        stake = accounts[3];
+        vote = await Vote.new(stake, generationCount, {from: netvote});
+        await vote.mint(netvote, 50, {from: netvote});
     });
 
     it("should start with only netvote with balance", async function () {
@@ -64,19 +63,82 @@ contract('Vote', function (accounts) {
         await assertBalance(netvote, 50);
         await assertBalance(election, 0);
         await assertBalance(admin, 0);
+        await assertBalance(stake, 0);
     });
 
     it("should transfer to admin", async function () {
-        await vote.transfer(admin, toWei(1), {from: netvote});
+        await vote.transfer(admin, 1, {from: netvote});
         await assertSupply(50);
         await assertBalance(netvote, 49);
         await assertBalance(election, 0);
         await assertBalance(admin, 1);
+        await assertBalance(stake, 0);
     });
 
-    it("should burn when vote", async function () {
-        await vote.transfer(admin, toWei(1), {from: netvote});
-        await vote.transfer(election, toWei(1), {from: admin});
+    it("should mint and transfer to stake", async function () {
+        await vote.transfer(admin, 1, {from: netvote});
+        await vote.transfer(election, 1, {from: admin});
+        await assertBalance(netvote, 49);
+        await assertBalance(election, 1);
+        await assertBalance(admin, 0);
+        await assertBalance(stake, 0);
+        await assertSupply(50);
+        await vote.spendVote({from: election});
+        await assertBalance(netvote, 49);
+        await assertBalance(election, 0);
+        await assertBalance(admin, 0);
+        await assertBalance(stake, generationCount+1);
+        await assertSupply(50+generationCount);
+    });
+
+    it("should not allow spendVote when locked", async function () {
+        await vote.transfer(admin, 1, {from: netvote});
+        await vote.transfer(election, 1, {from: admin});
+        await vote.lock({from: netvote});
+        await assertThrowsAsync(async function(){
+            await vote.spendVote({from: election});
+        }, Error, "should throw Error")
+    });
+
+    it("should not allow spendVote with no balance", async function () {
+        await vote.transfer(admin, 1, {from: netvote});
+        await assertThrowsAsync(async function(){
+            await vote.spendVote({from: election});
+        }, Error, "should throw Error")
+    });
+
+});
+
+contract('Vote without generation', function (accounts) {
+    let netvote;
+    let admin;
+    let election;
+    let vote;
+    let stake;
+
+    let assertBalance = async (addr, expected) => {
+        let bal = await vote.balanceOf(addr);
+        assert.equal(bal.toNumber(), expected);
+    };
+
+    let assertSupply = async (expected) => {
+        let bal = await vote.totalSupply();
+        assert.equal(bal.toNumber(), expected);
+    };
+
+
+    beforeEach(async () => {
+        netvote = accounts[0];
+        admin = accounts[1];
+        election = accounts[2];
+        stake = accounts[3];
+        vote = await Vote.new(stake, 0, {from: netvote});
+        await vote.mint(netvote, 50, {from: netvote});
+    });
+
+    it("should mint and transfer to stake", async function () {
+        await vote.transfer(admin, 1, {from: netvote});
+        await vote.transfer(election, 1, {from: admin});
         await assertBalance(netvote, 49);
         await assertBalance(election, 1);
         await assertBalance(admin, 0);
@@ -85,23 +147,8 @@ contract('Vote', function (accounts) {
         await assertBalance(netvote, 49);
         await assertBalance(election, 0);
         await assertBalance(admin, 0);
-        await assertSupply(49);
-    });
-
-    it("should not allow spendVote when locked", async function () {
-        await vote.transfer(admin, toWei(1), {from: netvote});
-        await vote.transfer(election, toWei(1), {from: admin});
-        await vote.lock({from: netvote});
-        await assertThrowsAsync(async function(){
-            await vote.spendVote({from: election});
-        }, Error, "should throw Error")
-    });
-
-    it("should not allow spendVote with no balance", async function () {
-        await vote.transfer(admin, toWei(1), {from: netvote});
-        await assertThrowsAsync(async function(){
-            await vote.spendVote({from: election});
-        }, Error, "should throw Error")
+        await assertSupply(50);
+        await assertBalance(stake, 1);
     });
 
 });

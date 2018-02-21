@@ -21,23 +21,45 @@ pragma solidity ^0.4.18;
 
 import "../state/Lockable.sol";
 import "zeppelin-solidity/contracts/token/MintableToken.sol";
-import "zeppelin-solidity/contracts/token/BurnableToken.sol";
-
 
 /**
  * @title Vote
  * @dev Token for voting
  */
-contract Vote is Lockable, MintableToken, BurnableToken {
+contract Vote is Lockable, MintableToken {
     string public name = "VOTE";
     string public symbol = "VOTE";
-    uint8 public decimals = 18;
-    event Vote(address election);
+    uint8 public decimals = 0;
+    uint256 public votesGeneratedPerVote = 0;
+    address stakeAddress;
 
-    function spendVote() public unlocked {
-        require(balances[msg.sender] >= 1 ether);
-        burn(1 ether);
-        Vote(msg.sender);
+    function Vote(address stakeContract, uint256 voteGenerationNum){
+        require(stakeContract != address(0));
+        stakeAddress = stakeContract;
+        votesGeneratedPerVote = voteGenerationNum;
     }
 
+    function setStakeContract(address stakeContract) public unlocked admin {
+        require(stakeContract != address(0));
+        stakeAddress = stakeContract;
+    }
+
+    function setVotesGeneratedPerVote(uint256 voteGenerationNum) public unlocked admin {
+        votesGeneratedPerVote = voteGenerationNum;
+    }
+
+    function mintAndDeliverVote() internal {
+        if(votesGeneratedPerVote > 0){
+            totalSupply = totalSupply.add(votesGeneratedPerVote);
+            balances[stakeAddress] = balances[stakeAddress].add(votesGeneratedPerVote);
+            Mint(stakeAddress, votesGeneratedPerVote);
+            Transfer(0x0, stakeAddress, votesGeneratedPerVote);
+        }
+    }
+
+    function spendVote() public unlocked {
+        require(balances[msg.sender] >= 1);
+        mintAndDeliverVote();
+        transfer(stakeAddress, 1);
+    }
 }
