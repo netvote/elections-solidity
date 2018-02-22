@@ -8,31 +8,31 @@ contract('GAS: Basic Election GAS Analysis', function (accounts) {
             ballotCount: 1,
             optionsPerBallot: 1,
             writeInCount: 0,
-            voteGasLimit: 175000
+            voteGasLimit: 185000
         },
         {
             ballotCount: 1,
             optionsPerBallot: 5,
             writeInCount: 0,
-            voteGasLimit: 200000
+            voteGasLimit: 210000
         },
         {
             ballotCount: 1,
             optionsPerBallot: 10,
             writeInCount: 0,
-            voteGasLimit: 225000
+            voteGasLimit: 235000
         },
         {
             ballotCount: 1,
             optionsPerBallot: 10,
             writeInCount: 2,
-            voteGasLimit: 250000
+            voteGasLimit: 260000
         },
         {
             ballotCount: 1,
             optionsPerBallot: 20,
             writeInCount: 2,
-            voteGasLimit: 300000
+            voteGasLimit: 310000
         }
     ];
 
@@ -76,7 +76,7 @@ contract('GAS: Tiered Election GAS Analysis', function (accounts) {
     const election = require("../test/end-to-end/jslib/tiered-election.js");
 
 
-    let threshold = 25000;
+    let threshold = 35000;
 
     let scenarios = [
         {
