@@ -22,6 +22,7 @@ pragma solidity ^0.4.18;
 import "../state/Lockable.sol";
 import "zeppelin-solidity/contracts/token/MintableToken.sol";
 import "zeppelin-solidity/contracts/token/BurnableToken.sol";
+import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
 
 
 /**
@@ -64,13 +65,14 @@ contract Vote is Lockable, MintableToken, BurnableToken {
         votesGeneratedPerVote = voteGenerationNum;
     }
 
-    function mintGenerated() public onlyStakeContract unlocked {
+    function mintGenerated() public onlyStakeContract unlocked nonReentrant {
         if (amountGenerated > 0) {
+            uint256 amount = amountGenerated;
             amountGenerated = 0;
-            totalSupply = totalSupply.add(amountGenerated);
-            balances[stakeAddress] = balances[stakeAddress].add(amountGenerated);
-            Mint(stakeAddress, amountGenerated);
-            Transfer(0x0, stakeAddress, amountGenerated);
+            totalSupply = totalSupply.add(amount);
+            balances[stakeAddress] = balances[stakeAddress].add(amount);
+            Mint(stakeAddress, amount);
+            Transfer(0x0, stakeAddress, amount);
         }
     }
 }

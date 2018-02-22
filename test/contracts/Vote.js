@@ -144,7 +144,7 @@ contract('Vote without generation', function (accounts) {
         await vote.mint(netvote, toWei(50), {from: netvote});
     });
 
-    it("should mint and transfer to stake", async function () {
+    it("should mint and NOT transfer to stake", async function () {
         await vote.transfer(admin, toWei(1), {from: netvote});
         await vote.transfer(election, toWei(1), {from: admin});
         await assertBalance(netvote, 49);
