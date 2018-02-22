@@ -29,7 +29,7 @@ import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
  * @title Vote
  * @dev Token for voting
  */
-contract Vote is Lockable, MintableToken, BurnableToken {
+contract Vote is Lockable, MintableToken, BurnableToken, ReentrancyGuard {
     string public name = "VOTE";
     string public symbol = "VOTE";
     uint8 public decimals = 18;
