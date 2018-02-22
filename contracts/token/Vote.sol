@@ -33,7 +33,7 @@ contract Vote is Lockable, MintableToken, BurnableToken, ReentrancyGuard {
     string public name = "VOTE";
     string public symbol = "VOTE";
     uint8 public decimals = 18;
-    uint256 public votesGeneratedPerVote = 0;
+    uint256 public votesGeneratedPerVote;
     address stakeAddress;
     uint256 public amountGenerated;
 
