@@ -132,7 +132,10 @@ contract('Vote without generation', function (accounts) {
         admin = accounts[1];
         election = accounts[2];
         stake = accounts[3];
-        vote = await Vote.new(stake, 0, {from: netvote});
+        //making sure these constructor values get overwritten
+        vote = await Vote.new(election, 2, {from: netvote});
+        await vote.setStakeContract(stake, {from: netvote});
+        await vote.setVotesGeneratedPerVote(0, {from: netvote});
         await vote.mint(netvote, 50, {from: netvote});
     });
 
