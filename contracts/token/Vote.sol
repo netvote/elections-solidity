@@ -65,7 +65,7 @@ contract Vote is Lockable, MintableToken, BurnableToken, ReentrancyGuard {
         votesGeneratedPerVote = voteGenerationNum;
     }
 
-    function mintGenerated() public onlyStakeContract unlocked nonReentrant {
+    function mintGeneratedVote() public onlyStakeContract unlocked nonReentrant {
         if (amountGenerated > 0) {
             uint256 amount = amountGenerated;
             amountGenerated = 0;

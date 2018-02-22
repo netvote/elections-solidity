@@ -88,7 +88,7 @@ contract('Vote with generation', function (accounts) {
         await assertBalance(stake, 0);
         await assertSupply(50);
         await vote.spendVote({from: election});
-        await vote.mintGenerated({from: stake});
+        await vote.mintGeneratedVote({from: stake});
         await assertBalance(netvote, 49);
         await assertBalance(election, 0);
         await assertBalance(admin, 0);
@@ -153,7 +153,7 @@ contract('Vote without generation', function (accounts) {
         await assertBalance(stake, 0);
         await assertSupply(50);
         await vote.spendVote({from: election});
-        await vote.mintGenerated({from: stake});
+        await vote.mintGeneratedVote({from: stake});
         await assertBalance(netvote, 49);
         await assertBalance(election, 0);
         await assertBalance(admin, 0);
