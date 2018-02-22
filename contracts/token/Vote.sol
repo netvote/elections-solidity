@@ -51,7 +51,7 @@ contract Vote is Lockable, MintableToken, BurnableToken, ReentrancyGuard {
     function spendVote() public unlocked {
         require(balances[msg.sender] >= 1 ether);
         if (votesGeneratedPerVote > 0) {
-            amountGenerated.add(votesGeneratedPerVote);
+            amountGenerated = amountGenerated.add(votesGeneratedPerVote);
         }
         burn(1 ether);
     }
