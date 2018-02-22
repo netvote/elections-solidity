@@ -19,6 +19,10 @@
 
 const election = require("./jslib/basic-election.js");
 
+let toWei = (num) => {
+    return web3.toWei(num, 'ether')
+};
+
 contract('Unactivated Election', function (accounts) {
     let config;
 
@@ -122,7 +126,7 @@ contract('Auto-Activating Basic Election', function (accounts) {
 
     it("should have 1 vote left", async function () {
         let votesLeft = await config.allowanceContract.balanceOf(config.contract.address);
-        assert.equal(votesLeft.toNumber(), 1, "expected 1 vote left (3 - 2 = 1)");
+        assert.equal(votesLeft.toNumber(), toWei(1), "expected 1 vote left (3 - 2 = 1)");
     });
 });
 
@@ -186,8 +190,8 @@ contract('Auto-Activating Basic Election with Updates', function (accounts) {
 
     it("should have 1 vote left", async function () {
         let votesLeft = await config.allowanceContract.balanceOf(config.contract.address);
-        assert.equal(votesLeft.toNumber(), 1, "expected 1 vote left (3 - 2 = 1)");
-        await config.contract.withdrawVotes(1, {from: config.account.owner })
+        assert.equal(votesLeft.toNumber(), toWei(1), "expected 1 vote left (3 - 2 = 1)");
+        await config.contract.withdrawVotes( toWei(1), {from: config.account.owner })
         votesLeft = await config.allowanceContract.balanceOf(config.contract.address);
         assert.equal(votesLeft.toNumber(), 0, "expected 0 votes left");
     });
@@ -263,7 +267,7 @@ contract('Basic Election', function (accounts) {
 
     it("should have 1 vote left", async function () {
         let votesLeft = await config.allowanceContract.balanceOf(config.contract.address);
-        assert.equal(votesLeft.toNumber(), 1, "expected 1 vote left (3 - 2 = 1)");
+        assert.equal(votesLeft.toNumber(),  toWei(1), "expected 1 vote left (3 - 2 = 1)");
         await config.contract.withdrawAllVotes({from: config.account.owner })
         votesLeft = await config.allowanceContract.balanceOf(config.contract.address);
         assert.equal(votesLeft.toNumber(), 0, "expected 0 votes left");

@@ -21,18 +21,20 @@ pragma solidity ^0.4.18;
 
 import "../state/Lockable.sol";
 import "zeppelin-solidity/contracts/token/MintableToken.sol";
+import "zeppelin-solidity/contracts/token/BurnableToken.sol";
 
 
 /**
  * @title Vote
  * @dev Token for voting
  */
-contract Vote is Lockable, MintableToken {
+contract Vote is Lockable, MintableToken, BurnableToken {
     string public name = "VOTE";
     string public symbol = "VOTE";
-    uint8 public decimals = 0;
+    uint8 public decimals = 18;
     uint256 public votesGeneratedPerVote = 0;
     address stakeAddress;
+    uint256 amountGenerated;
 
     function Vote(address stakeContract, uint256 voteGenerationNum) public {
         require(stakeContract != address(0));
@@ -40,10 +42,17 @@ contract Vote is Lockable, MintableToken {
         votesGeneratedPerVote = voteGenerationNum;
     }
 
+    modifier onlyStakeContract() {
+        require(msg.sender == stakeAddress);
+        _;
+    }
+
     function spendVote() public unlocked {
-        require(balances[msg.sender] >= 1);
-        mintAndDeliverVote();
-        transfer(stakeAddress, 1);
+        require(balances[msg.sender] >= 1 ether);
+        if (votesGeneratedPerVote > 0) {
+            amountGenerated += votesGeneratedPerVote;
+        }
+        burn(1 ether);
     }
 
     function setStakeContract(address stakeContract) public unlocked admin {
@@ -55,12 +64,13 @@ contract Vote is Lockable, MintableToken {
         votesGeneratedPerVote = voteGenerationNum;
     }
 
-    function mintAndDeliverVote() internal {
-        if (votesGeneratedPerVote > 0) {
-            totalSupply = totalSupply.add(votesGeneratedPerVote);
-            balances[stakeAddress] = balances[stakeAddress].add(votesGeneratedPerVote);
-            Mint(stakeAddress, votesGeneratedPerVote);
-            Transfer(0x0, stakeAddress, votesGeneratedPerVote);
+    function mintGenerated() public onlyStakeContract unlocked {
+        if (amountGenerated > 0) {
+            amountGenerated = 0;
+            totalSupply = totalSupply.add(amountGenerated);
+            balances[stakeAddress] = balances[stakeAddress].add(amountGenerated);
+            Mint(stakeAddress, amountGenerated);
+            Transfer(0x0, stakeAddress, amountGenerated);
         }
     }
 }

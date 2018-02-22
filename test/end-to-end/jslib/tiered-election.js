@@ -12,6 +12,10 @@ let log = (msg) => {
     //console.log(msg);
 };
 
+let toWei = (num) => {
+    return web3.toWei(num, 'ether')
+};
+
 // used to run these outside of a test context (e.g., truffle exec)
 let initContracts = (provider) => {
     const contract = require("truffle-contract");
@@ -143,9 +147,9 @@ let getVotesByGroup = async (ballot, group) => {
 
 let setupVoteToken = async(config) => {
     log("setup vote allowance");
-    let va = await Vote.new(config.netvote, 5, {from: config.netvote});
+    let va = await Vote.new(config.netvote, toWei(5), {from: config.netvote});
     config.allowanceContract = va;
-    await va.mint(config.account.owner, 50, {from: config.netvote});
+    await va.mint(config.account.owner, toWei(50), {from: config.netvote});
     return config;
 };
 
@@ -158,7 +162,7 @@ let createElection = async(config) => {
     if(config.voters){
         numVotes = Object.keys(config.voters).length;
     }
-    await config.allowanceContract.transfer(config.contract.address, numVotes+1, {from: config.account.owner})
+    await config.allowanceContract.transfer(config.contract.address, toWei(numVotes+1), {from: config.account.owner})
     config = await measureGas(config, "Authorize Election for Allowance");
     return config;
 };

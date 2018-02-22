@@ -6,6 +6,10 @@ let Vote;
 const ENCRYPT_ALGORITHM = "aes-256-cbc";
 const ENCRYPT_KEY = "123e4567e89b12d3a456426655440000";
 
+let toWei = (num) => {
+    return web3.toWei(num, 'ether')
+};
+
 // used to run these outside of a test context (e.g., truffle exec)
 let initContracts = (provider) => {
     const contract = require("truffle-contract");
@@ -126,9 +130,9 @@ let printGas = (config) => {
 
 let setupVoteToken = async(config) => {
     log("setup vote allowance");
-    let va = await Vote.new(config.netvote, 5, {from: config.netvote});
+    let va = await Vote.new(config.netvote, toWei(5), {from: config.netvote});
     config.allowanceContract = va;
-    await va.mint(config.account.owner, 50, {from: config.netvote});
+    await va.mint(config.account.owner, toWei(50), {from: config.netvote});
     return config;
 };
 
@@ -140,7 +144,7 @@ let createBasicElection = async(config) => {
     if(config.voters){
         numVotes = Object.keys(config.voters).length;
     }
-    await config.allowanceContract.transfer(config.contract.address, numVotes+1, {from: config.account.owner})
+    await config.allowanceContract.transfer(config.contract.address, toWei(numVotes+1), {from: config.account.owner})
     config = await measureGas(config, "Allowance: authorize election");
     return config;
 };
