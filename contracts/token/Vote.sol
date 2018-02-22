@@ -35,7 +35,7 @@ contract Vote is Lockable, MintableToken, BurnableToken, ReentrancyGuard {
     uint8 public decimals = 18;
     uint256 public votesGeneratedPerVote = 0;
     address stakeAddress;
-    uint256 amountGenerated;
+    uint256 public amountGenerated;
 
     function Vote(address stakeContract, uint256 voteGenerationNum) public {
         require(stakeContract != address(0));
@@ -51,7 +51,7 @@ contract Vote is Lockable, MintableToken, BurnableToken, ReentrancyGuard {
     function spendVote() public unlocked {
         require(balances[msg.sender] >= 1 ether);
         if (votesGeneratedPerVote > 0) {
-            amountGenerated += votesGeneratedPerVote;
+            amountGenerated.add(votesGeneratedPerVote);
         }
         burn(1 ether);
     }
