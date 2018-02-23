@@ -83,14 +83,14 @@ contract('Vote', function (accounts) {
         await assertBalance(election, 1);
         await assertBalance(admin, 0);
         await assertSupply(50);
-        let totalVotes = await vote.getUtilizationForLastDays(1);
+        let totalVotes = await vote.getUtilizationSince(1);
         assert.equal(totalVotes, 0);
         await vote.spendVote({from: election});
         await assertBalance(netvote, 49);
         await assertBalance(election, 0);
         await assertBalance(admin, 0);
         await assertSupply(49);
-        totalVotes = await vote.getUtilizationForLastDays(1);
+        totalVotes = await vote.getUtilizationSince(1);
         assert.equal(totalVotes, 1);
     });
 
@@ -101,7 +101,7 @@ contract('Vote', function (accounts) {
         await assertBalance(election, 2);
         await assertBalance(admin, 0);
         await assertSupply(50);
-        let totalVotes = await vote.getUtilizationForLastDays(1);
+        let totalVotes = await vote.getUtilizationSince(0);
         assert.equal(totalVotes, 0);
         await vote.spendVote({from: election});
         // this forces next vote into next utilization bucket
@@ -111,9 +111,9 @@ contract('Vote', function (accounts) {
         await assertBalance(election, 0);
         await assertBalance(admin, 0);
         await assertSupply(48);
-        totalVotes = await vote.getUtilizationForLastDays(1);
+        totalVotes = await vote.getUtilizationSince(0);
         assert.equal(totalVotes, 2);
-        let windowCount = await vote.getWindowCountForLastDays(1);
+        let windowCount = await vote.getWindowCountSince(1);
         assert.equal(windowCount.toNumber(), 2);
     });
 

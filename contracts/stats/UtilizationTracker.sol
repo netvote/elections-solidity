@@ -27,7 +27,7 @@ contract UtilizationTracker is Adminable {
     using SafeMath for uint256;
 
     UsageWindow[] public windows;
-    uint granularity = 1 days;
+    uint granularity = 1 hours;
 
     struct UsageWindow {
         uint windowStart;
@@ -42,26 +42,24 @@ contract UtilizationTracker is Adminable {
         granularity = gran;
     }
 
-    function getWindowCountForLastDays(uint256 numberOfDays) public constant returns (uint256) {
-        uint256 horizon = block.timestamp - (numberOfDays * 1 days);
+    function getWindowCountSince(uint256 horizon) public constant returns (uint256) {
         uint256 count = 0;
         for (uint i = windows.length; i > 0; i--) {
             uint idx = i-1;
             if (windows[idx].windowStart < horizon) {
-                break; // HERE
+                break;
             }
             count = count.add(1);
         }
         return count;
     }
 
-    function getUtilizationForLastDays(uint256 numberOfDays) public constant returns (uint256) {
-        uint256 horizon = block.timestamp - (numberOfDays * 1 days);
+    function getUtilizationSince(uint256 horizon) public constant returns (uint256) {
         uint256 util = 0;
         for (uint i = windows.length; i > 0; i--) {
             uint idx = i-1;
             if (windows[idx].windowStart < horizon) {
-                break; // HERE
+                break;
             }
             util = util.add(windows[idx].utilization);
         }
