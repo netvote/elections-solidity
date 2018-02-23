@@ -20,59 +20,23 @@
 pragma solidity ^0.4.18;
 
 import "../state/Lockable.sol";
+import "../stats/UtilizationTracker.sol";
 import "zeppelin-solidity/contracts/token/MintableToken.sol";
 import "zeppelin-solidity/contracts/token/BurnableToken.sol";
-import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
 
 
 /**
  * @title Vote
  * @dev Token for voting
  */
-contract Vote is Lockable, MintableToken, BurnableToken, ReentrancyGuard {
+contract Vote is Lockable, MintableToken, BurnableToken, UtilizationTracker {
     string public name = "VOTE";
     string public symbol = "VOTE";
     uint8 public decimals = 18;
-    uint256 public votesGeneratedPerVote;
-    address stakeAddress;
-    uint256 public amountGenerated;
-
-    function Vote(address stakeContract, uint256 voteGenerationNum) public {
-        require(stakeContract != address(0));
-        stakeAddress = stakeContract;
-        votesGeneratedPerVote = voteGenerationNum;
-    }
-
-    modifier onlyStakeContract() {
-        require(msg.sender == stakeAddress);
-        _;
-    }
 
     function spendVote() public unlocked {
         require(balances[msg.sender] >= 1 ether);
-        if (votesGeneratedPerVote > 0) {
-            amountGenerated = amountGenerated.add(votesGeneratedPerVote);
-        }
+        incrementUtilization();
         burn(1 ether);
-    }
-
-    function setStakeContract(address stakeContract) public unlocked admin {
-        require(stakeContract != address(0));
-        stakeAddress = stakeContract;
-    }
-
-    function setVotesGeneratedPerVote(uint256 voteGenerationNum) public unlocked admin {
-        votesGeneratedPerVote = voteGenerationNum;
-    }
-
-    function mintGeneratedVote() public onlyStakeContract unlocked nonReentrant {
-        if (amountGenerated > 0) {
-            uint256 amount = amountGenerated;
-            amountGenerated = 0;
-            totalSupply = totalSupply.add(amount);
-            balances[stakeAddress] = balances[stakeAddress].add(amount);
-            Mint(stakeAddress, amount);
-            Transfer(0x0, stakeAddress, amount);
-        }
     }
 }
