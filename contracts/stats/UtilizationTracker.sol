@@ -35,7 +35,7 @@ contract UtilizationTracker is Adminable {
     }
 
     function UtilizationTracker() public {
-        windows.push(UsageWindow({windowStart: block.timestamp, utilization: 0 }));
+        windows.push(UsageWindow({windowStart: now, utilization: 0 }));
     }
 
     function setGranularity(uint gran) public admin {
@@ -68,8 +68,8 @@ contract UtilizationTracker is Adminable {
 
     function incrementUtilization() internal {
         uint idx = windows.length-1;
-        if (windows[idx].windowStart < (block.timestamp - (granularity))) {
-            windows.push(UsageWindow({windowStart: block.timestamp, utilization: 1}));
+        if (windows[idx].windowStart < (now - (granularity))) {
+            windows.push(UsageWindow({windowStart: now, utilization: 1}));
         } else {
             windows[idx].utilization = windows[idx].utilization.add(1);
         }

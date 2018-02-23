@@ -94,6 +94,27 @@ contract('Vote', function (accounts) {
         assert.equal(totalVotes, 1);
     });
 
+    it("should let minters mint", async function () {
+        await vote.addMinter(admin, {from: netvote});
+        await vote.mint(netvote, toWei(50), {from: admin});
+        await assertSupply(100);
+    });
+
+    it("should not let non-minters mint", async function () {
+        await assertThrowsAsync(async function(){
+            await vote.mint(netvote, toWei(50), {from: admin});
+        }, Error, "should throw Error")
+    });
+
+    it("should not let non-minters mint after removal", async function () {
+        await vote.addMinter(admin, {from: netvote});
+        await vote.mint(netvote, toWei(50), {from: admin});
+        await vote.removeMinter(admin, {from: netvote});
+        await assertThrowsAsync(async function(){
+            await vote.mint(netvote, toWei(50), {from: admin});
+        }, Error, "should throw Error")
+    });
+
     it("should burn multiple when vote", async function () {
         await vote.transfer(admin, toWei(2), {from: netvote});
         await vote.transfer(election, toWei(2), {from: admin});
@@ -112,15 +133,15 @@ contract('Vote', function (accounts) {
         await assertBalance(admin, 0);
         await assertSupply(48);
         totalVotes = await vote.getUtilizationSince(0);
-        assert.equal(totalVotes, 2);
+        assert.equal(totalVotes.toNumber(), 2);
         let windowCount = await vote.getWindowCountSince(1);
         assert.equal(windowCount.toNumber(), 2);
 
         // check except first window, to verify loop
-        let date = (new Date()).getTime()-2000;
+        let date = (new Date()).getTime()-1000;
         let ts = date/1000;
         totalVotes = await vote.getUtilizationSince(ts);
-        assert.equal(totalVotes, 1);
+        assert.equal(totalVotes.toNumber(), 1);
         windowCount = await vote.getWindowCountSince(ts);
         assert.equal(windowCount.toNumber(), 1);
 

@@ -34,6 +34,29 @@ contract Vote is Lockable, MintableToken, BurnableToken, UtilizationTracker {
     string public symbol = "VOTE";
     uint8 public decimals = 18;
 
+    mapping(address => bool) minters;
+
+    modifier onlyMinter() {
+        require(minters[msg.sender] || msg.sender == owner);
+        _;
+    }
+
+    function addMinter(address m) admin {
+        minters[m] = true;
+    }
+
+    function removeMinter(address m) admin {
+        minters[m] = false;
+    }
+
+    function mint(address _to, uint256 _amount) onlyMinter canMint public returns (bool) {
+        totalSupply = totalSupply.add(_amount);
+        balances[_to] = balances[_to].add(_amount);
+        Mint(_to, _amount);
+        Transfer(0x0, _to, _amount);
+        return true;
+    }
+
     function spendVote() public unlocked {
         require(balances[msg.sender] >= 1 ether);
         incrementUtilization();
