@@ -115,6 +115,15 @@ contract('Vote', function (accounts) {
         assert.equal(totalVotes, 2);
         let windowCount = await vote.getWindowCountSince(1);
         assert.equal(windowCount.toNumber(), 2);
+
+        // check except first window, to verify loop
+        let date = (new Date()).getTime()-2000;
+        let ts = date/1000;
+        totalVotes = await vote.getUtilizationSince(ts);
+        assert.equal(totalVotes, 1);
+        windowCount = await vote.getWindowCountSince(ts);
+        assert.equal(windowCount.toNumber(), 1);
+
     });
 
     it("should not allow spendVote when locked", async function () {
