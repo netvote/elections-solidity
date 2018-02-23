@@ -41,11 +41,11 @@ contract Vote is Lockable, MintableToken, BurnableToken, UtilizationTracker {
         _;
     }
 
-    function addMinter(address m) admin {
+    function addMinter(address m) public admin {
         minters[m] = true;
     }
 
-    function removeMinter(address m) admin {
+    function removeMinter(address m) public admin {
         minters[m] = false;
     }
 
