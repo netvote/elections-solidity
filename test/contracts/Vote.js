@@ -18,6 +18,7 @@
 //------------------------------------------------------------------------------
 
 let Vote = artifacts.require("Vote");
+let sleep = require('sleep');
 
 let assertThrowsAsync = async (fn, regExp) => {
     let f = () => {};
@@ -56,6 +57,7 @@ contract('Vote', function (accounts) {
         admin = accounts[1];
         election = accounts[2];
         vote = await Vote.new({from: netvote});
+        await vote.setGranularity(1, {from: netvote});
         await vote.mint(netvote, toWei(50), {from: netvote});
     });
 
@@ -81,11 +83,68 @@ contract('Vote', function (accounts) {
         await assertBalance(election, 1);
         await assertBalance(admin, 0);
         await assertSupply(50);
+        let totalVotes = await vote.getUtilizationSince(1);
+        assert.equal(totalVotes, 0);
         await vote.spendVote({from: election});
         await assertBalance(netvote, 49);
         await assertBalance(election, 0);
         await assertBalance(admin, 0);
         await assertSupply(49);
+        totalVotes = await vote.getUtilizationSince(1);
+        assert.equal(totalVotes, 1);
+    });
+
+    it("should let minters mint", async function () {
+        await vote.addMinter(admin, {from: netvote});
+        await vote.mint(netvote, toWei(50), {from: admin});
+        await assertSupply(100);
+    });
+
+    it("should not let non-minters mint", async function () {
+        await assertThrowsAsync(async function(){
+            await vote.mint(netvote, toWei(50), {from: admin});
+        }, Error, "should throw Error")
+    });
+
+    it("should not let non-minters mint after removal", async function () {
+        await vote.addMinter(admin, {from: netvote});
+        await vote.mint(netvote, toWei(50), {from: admin});
+        await vote.removeMinter(admin, {from: netvote});
+        await assertThrowsAsync(async function(){
+            await vote.mint(netvote, toWei(50), {from: admin});
+        }, Error, "should throw Error")
+    });
+
+    it("should burn multiple when vote", async function () {
+        await vote.transfer(admin, toWei(2), {from: netvote});
+        await vote.transfer(election, toWei(2), {from: admin});
+        await assertBalance(netvote, 48);
+        await assertBalance(election, 2);
+        await assertBalance(admin, 0);
+        await assertSupply(50);
+        let totalVotes = await vote.getUtilizationSince(0);
+        assert.equal(totalVotes, 0);
+        await vote.spendVote({from: election});
+        // this forces next vote into next utilization bucket
+        sleep.sleep(2);
+        await vote.spendVote({from: election});
+        await assertBalance(netvote, 48);
+        await assertBalance(election, 0);
+        await assertBalance(admin, 0);
+        await assertSupply(48);
+        totalVotes = await vote.getUtilizationSince(0);
+        assert.equal(totalVotes.toNumber(), 2);
+        let windowCount = await vote.getWindowCountSince(1);
+        assert.equal(windowCount.toNumber(), 2);
+
+        // check except first window, to verify loop
+        let date = (new Date()).getTime()-1000;
+        let ts = date/1000;
+        totalVotes = await vote.getUtilizationSince(ts);
+        assert.equal(totalVotes.toNumber(), 1);
+        windowCount = await vote.getWindowCountSince(ts);
+        assert.equal(windowCount.toNumber(), 1);
+
     });
 
     it("should not allow spendVote when locked", async function () {
@@ -101,6 +160,12 @@ contract('Vote', function (accounts) {
         await vote.transfer(admin, toWei(1), {from: netvote});
         await assertThrowsAsync(async function(){
             await vote.spendVote({from: election});
+        }, Error, "should throw Error")
+    });
+
+    it("should not allow setting granularity by someone else", async function () {
+        await assertThrowsAsync(async function(){
+            await vote.setGranularity(5, {from: admin});
         }, Error, "should throw Error")
     });
 

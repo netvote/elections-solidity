@@ -51,7 +51,7 @@ contract('BaseElection', function (accounts) {
         netvote = accounts[0];
         admin = accounts[1];
         admin2 = accounts[2];
-        vote = await Vote.new({from: netvote});
+        vote = await Vote.new(netvote, toWei(5), {from: netvote});
         election = await BaseElection.new("uid", vote.address, admin, false, netvote, {from: admin});
         await vote.mint(admin, toWei(50), {from: netvote});
     });

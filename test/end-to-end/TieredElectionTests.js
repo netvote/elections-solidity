@@ -281,50 +281,50 @@ contract('2 Pools, 2 Voters, 2 Shared Ballots', function (accounts) {
 
     before(async () => {
         config = await election.doEndToEndElection( {
-                account: {
-                    allowance: 2,
-                    owner: accounts[7]
+            account: {
+                allowance: 2,
+                owner: accounts[7]
+            },
+            netvote: accounts[0],
+            admin: accounts[1],
+            allowUpdates: false,
+            gateway: accounts[8],
+            ballots: {
+                ballot1: {
+                    admin: accounts[2],
+                    metadata: "ipfs1",
+                    groups: ["D5", "D6", "NY"]
                 },
-                netvote: accounts[0],
-                admin: accounts[1],
-                allowUpdates: false,
-                gateway: accounts[8],
-                ballots: {
-                    ballot1: {
-                        admin: accounts[2],
-                        metadata: "ipfs1",
-                        groups: ["D5", "D6", "NY"]
-                    },
-                    ballot2: {
-                        admin: accounts[3],
-                        metadata: "ipfs1",
-                        groups: ["D5", "D6", "NY"]
-                    }
-                },
-                pools: {
-                    pool1: {
-                        admin: accounts[4],
-                        groups: ["D5", "NY"],
-                        ballots: ["ballot1", "ballot2"]
-                    },
-                    pool2: {
-                        admin: accounts[5],
-                        groups: ["D6", "NY"],
-                        ballots: ["ballot1", "ballot2"]
-                    }
-                },
-                voters: {
-                    voter1: {
-                        pool: "pool1",
-                        address: accounts[6],
-                        vote: "encrypted-vote-1"
-                    },
-                    voter2: {
-                        pool: "pool2",
-                        address: accounts[7],
-                        vote: "encrypted-vote-2"
-                    }
+                ballot2: {
+                    admin: accounts[3],
+                    metadata: "ipfs1",
+                    groups: ["D5", "D6", "NY"]
                 }
+            },
+            pools: {
+                pool1: {
+                    admin: accounts[4],
+                    groups: ["D5", "NY"],
+                    ballots: ["ballot1", "ballot2"]
+                },
+                pool2: {
+                    admin: accounts[5],
+                    groups: ["D6", "NY"],
+                    ballots: ["ballot1", "ballot2"]
+                }
+            },
+            voters: {
+                voter1: {
+                    pool: "pool1",
+                    address: accounts[6],
+                    vote: "encrypted-vote-1"
+                },
+                voter2: {
+                    pool: "pool2",
+                    address: accounts[7],
+                    vote: "encrypted-vote-2"
+                }
+            }
         });
 
     });
@@ -381,4 +381,3 @@ contract('2 Pools, 2 Voters, 2 Shared Ballots', function (accounts) {
         assertVote(votes[0], config.voters.voter2.vote);
     });
 });
-

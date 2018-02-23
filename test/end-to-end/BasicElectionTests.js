@@ -269,4 +269,3 @@ contract('Basic Election', function (accounts) {
         assert.equal(votesLeft.toNumber(), 0, "expected 0 votes left");
     });
 });
-
