@@ -16,3 +16,9 @@ message Vote {
     uint64 encryption_seed = 1;
     repeated BallotVote ballot_votes = 2;
 }
+
+message SignedVote {
+    Vote vote = 1;
+    string address = 2;
+    string signature = 3;
+}

@@ -5,6 +5,7 @@
     "quotes": ["error", "double"],
     "indentation": ["error", 4],
     "arg-overflow": ["warning", 3],
-    "security/no-block-members": "off"
+    "security/no-block-members": "off",
+    "security/no-inline-assembly": "off"
   }
 }
