@@ -1,6 +1,7 @@
 const protobuf = require("protobufjs");
 const crypto = require('crypto');
 let BasicElection;
+let TokenElection;
 let Vote;
 
 const ENCRYPT_ALGORITHM = "aes-256-cbc";
@@ -11,10 +12,11 @@ let initContracts = (provider) => {
     const contract = require("truffle-contract");
     const Web3 = require("web3");
     BasicElection = contract(require("../../../build/contracts/BasicElection.json"));
+    TokenElection = contract(require("../../../build/contracts/TokenElection.json"));
     Vote = contract(require("../../../build/contracts/Vote.json"));
     let p = new Web3.providers.HttpProvider(provider);
 
-    [BasicElection, Vote].forEach(async (c)=> {
+    [TokenElection, BasicElection, Vote].forEach(async (c)=> {
         c.setProvider(p);
         c.defaults({
             gas: 4712388,
@@ -26,6 +28,7 @@ let initContracts = (provider) => {
 let initTestContracts = () => {
     if(BasicElection === undefined) {
         BasicElection = artifacts.require("BasicElection");
+        TokenElection = artifacts.require("TokenElection");
         Vote = artifacts.require("Vote");
     }
 };
@@ -132,8 +135,22 @@ let setupVoteToken = async(config) => {
     return config;
 };
 
+let createTokenElection = async(config) => {
+    log("create token election");
+    let balanceDate = new Date().getTime()/1000;
+    config.contract = await TokenElection.new("uuid", config.allowanceContract.address, config.account.owner, config.allowUpdates, config.netvote, config.metadata, config.gateway, config.autoActivate, config.allowanceContract.address, balanceDate, {from: config.admin });
+    config = await measureGas(config, "Create Token Election");
+    let numVotes = 25;
+    if(config.voters){
+        numVotes = Object.keys(config.voters).length;
+    }
+    await config.allowanceContract.transfer(config.contract.address, web3.toWei(numVotes+1, 'ether'), {from: config.account.owner})
+    config = await measureGas(config, "Allowance: authorize election");
+    return config;
+};
+
 let createBasicElection = async(config) => {
-    log("create election");
+    log("create basic election");
     config.contract = await BasicElection.new("uuid", config.allowanceContract.address, config.account.owner, config.allowUpdates, config.netvote, config.metadata, config.gateway, config.autoActivate, {from: config.admin });
     config = await measureGas(config, "Create Basic Election");
     let numVotes = 25;
@@ -159,9 +176,11 @@ let castVotes = async(config) => {
     for (let name in config.voters) {
         if (config.voters.hasOwnProperty(name)) {
             let voter = config.voters[name];
+            log("casting");
             await config.contract.castVote(voter.voteId, voter.vote, "passphrase", {from: config.gateway});
             config = await measureGas(config, "Cast Vote");
             if(voter.updateVote){
+                log("updating");
                 await config.contract.updateVote(voter.voteId, voter.updateVote, "passphrase", {from: config.gateway});
                 config = await measureGas(config, "Update Vote");
             }
@@ -206,6 +225,17 @@ let doEndToEndElectionAutoActivate = async(config) => {
     ], config);
 };
 
+
+let doEndToEndTokenElectionAutoActivate = async(config) => {
+    return await doTransactions([
+        setupVoteToken,
+        createTokenElection,
+        castVotes,
+        closeElection,
+        releaseKey
+    ], config);
+};
+
 let doEndToEndElection = async(config) => {
     return await doTransactions([
         setupVoteToken,
@@ -220,11 +250,13 @@ let doEndToEndElection = async(config) => {
 module.exports = {
     doEndToEndElection,
     doEndToEndElectionAutoActivate,
+    doEndToEndTokenElectionAutoActivate,
     generateEncryptedVote,
     toEncryptedVote,
     toEncodedVote,
     doTransactions,
     createBasicElection,
+    createTokenElection,
     setupVoteToken,
     castVotes
 };
