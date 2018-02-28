@@ -17,6 +17,12 @@ message Vote {
     repeated BallotVote ballot_votes = 2;
 }
 
+message WeightedVote {
+    Vote vote = 1;
+    // set by gateway
+    float weight = 2;
+}
+
 message SignedVote {
     Vote vote = 1;
     string address = 2;
