@@ -61,8 +61,8 @@ contract TokenElection is BasicElection {
         electionType = "TOKEN";
         tokenAddress = erc20Token;
 
-        //sanity check, must be a date within last 5 years
-        require(balanceTimestamp > (now - (5 years)));
+        //balance must be in past for gateway-confirmed token elections
+        require(balanceTimestamp < now);
         balanceTime = balanceTimestamp;
 
         if (autoActivate) {

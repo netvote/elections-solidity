@@ -137,7 +137,7 @@ let setupVoteToken = async(config) => {
 
 let createTokenElection = async(config) => {
     log("create token election");
-    let balanceDate = new Date().getTime()/1000;
+    let balanceDate = (new Date().getTime()-100000)/1000;
     config.contract = await TokenElection.new("uuid", config.allowanceContract.address, config.account.owner, config.allowUpdates, config.netvote, config.metadata, config.gateway, config.autoActivate, config.allowanceContract.address, balanceDate, {from: config.admin });
     config = await measureGas(config, "Create Token Election");
     let numVotes = 25;
