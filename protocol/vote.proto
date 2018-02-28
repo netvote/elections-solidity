@@ -17,5 +17,5 @@ message Vote {
     repeated BallotVote ballot_votes = 2;
     // weight is only set by the gateway, default 1.0
     // tally will use 1.0 if no weight is set
-    float weight = 3;
+    string weight = 3;
 }

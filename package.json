@@ -1,6 +1,6 @@
 {
   "name": "@netvote/elections-solidity",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Elections Contracts",
   "main": "truffle-config.js",
   "directories": {
