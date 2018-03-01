@@ -37,6 +37,8 @@ contract BaseElection is ExternalAuthorizable, KeyHolder, ReentrancyGuard {
     address voteOwner;
     bool public allowVoteUpdates;
     string public electionType;
+    uint public startTime;
+    uint public endTime;
 
     function BaseElection(
         bytes32 hashedUserId,
@@ -49,6 +51,26 @@ contract BaseElection is ExternalAuthorizable, KeyHolder, ReentrancyGuard {
         voteToken = Vote(tokenContractAddress);
         voteOwner = acct;
         allowVoteUpdates = allowUpdates;
+    }
+
+    modifier validTime(){
+        require(now > (startTime - 3 hours));
+        require(now < (endTime + 3 hours));
+        _;
+    }
+
+    function activate() public building admin {
+        if (startTime == 0 && endTime == 0) {
+            startTime = now;
+            endTime = now + (4 weeks);
+        }
+        super.activate();
+    }
+
+    function setTimes(uint electionStartTime, uint electionEndTime) public building admin {
+        require(electionEndTime > electionStartTime);
+        startTime = electionStartTime;
+        endTime = electionEndTime;
     }
 
     function setVoteOwner(address acct) public admin {
@@ -65,7 +87,7 @@ contract BaseElection is ExternalAuthorizable, KeyHolder, ReentrancyGuard {
         voteToken.transfer(voteOwner, value);
     }
 
-    function deductVote() public voting nonReentrant {
+    function deductVote() public voting validTime nonReentrant {
         voteToken.spendVote();
     }
 }
