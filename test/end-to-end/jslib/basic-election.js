@@ -177,11 +177,13 @@ let castVotes = async(config) => {
         if (config.voters.hasOwnProperty(name)) {
             let voter = config.voters[name];
             log("casting");
-            await config.contract.castVote(voter.voteId, voter.vote, "passphrase", {from: config.gateway});
+            let jti = voter.voteId+"1";
+            await config.contract.castVote(voter.voteId, voter.vote, "passphrase", jti, {from: config.gateway});
             config = await measureGas(config, "Cast Vote");
             if(voter.updateVote){
                 log("updating");
-                await config.contract.updateVote(voter.voteId, voter.updateVote, "passphrase", {from: config.gateway});
+                jti = jti+"2";
+                await config.contract.updateVote(voter.voteId, voter.updateVote, "passphrase", jti, {from: config.gateway});
                 config = await measureGas(config, "Update Vote");
             }
         }
