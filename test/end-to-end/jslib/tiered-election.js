@@ -1,11 +1,14 @@
 const protobuf = require("protobufjs");
 const crypto = require('crypto');
+let HDWalletProvider = require("truffle-hdwallet-provider");
 let TieredElection;
 let TieredBallot;
 let TieredPool;
 let Vote;
 const ENCRYPT_ALGORITHM = "aes-256-cbc";
 const ENCRYPT_KEY = "123e4567e89b12d3a456426655440000";
+const Web3 = require("web3");
+
 
 // for debugging
 let log = (msg) => {
@@ -21,10 +24,10 @@ let initContracts = (provider) => {
     TieredPool = contract(require("../../../build/contracts/TieredPool.json"));
 
     Vote = contract(require("../../../build/contracts/Vote.json"));
-    let p = new Web3.providers.HttpProvider(provider);
+    web3 = new Web3(provider);
 
     [TieredElection, TieredBallot, TieredPool, Vote].forEach(async (c)=> {
-        c.setProvider(p);
+        c.setProvider(provider);
         c.defaults({
             gas: 4712388,
             gasPrice: 100000000000
@@ -306,7 +309,8 @@ let releaseKey = async(config) => {
 
 let doTransactions = async(transactions, config) => {
     if(config.provider){
-        initContracts(config.provider);
+        let p = (config.hdwallet) ? new HDWalletProvider(process.env.MNEMONIC, config.provider) : new Web3.providers.HttpProvider(provider);
+        initContracts(p);
     }else {
         initTestContracts();
     }

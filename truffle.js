@@ -1,6 +1,5 @@
 let HDWalletProvider = require("truffle-hdwallet-provider");
 
-
 const providerWithMnemonic = (mnemonic, rpcEndpoint) =>
     new HDWalletProvider(mnemonic, rpcEndpoint);
 
@@ -8,6 +7,10 @@ const infuraProvider = network => providerWithMnemonic(
     process.env.MNEMONIC || '',
     `https://${network}.infura.io/${process.env.INFURA_API_KEY}`
 );
+
+const netvoteProvider = (url) => {
+    return new HDWalletProvider(process.env.MNEMONIC, url)
+}
 
 module.exports = {
     networks: {
@@ -26,6 +29,11 @@ module.exports = {
             host: "127.0.0.1",
             port: 7545,
             network_id: "*" // Match any network id
+        },
+        netvote: {
+            provider: netvoteProvider("http://localhost:8501"),
+            network_id: "1984",
+	        gas: 4612388
         },
         ropsten: {
             provider: infuraProvider('ropsten'),
