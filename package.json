@@ -35,7 +35,6 @@
   "dependencies": {
     "crypto2": "^0.3.2",
     "protobufjs": "^6.8.3",
-    "run-with-testrpc": "^0.3.0",
     "ganache-cli": "^6.1.0",
     "sleep": "^5.1.1",
     "solium": "^1.1.2",

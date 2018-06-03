@@ -13,7 +13,7 @@ before_install:
 - npm install -g npm codecov
 before_script:
 - truffle version
-- ganache-cli -p 8545 -l 20000000
+- ganache-cli -p 8545 -l 20000000 > /dev/null &
 script:
 - npm run lint
 - travis_retry npm run coverage
