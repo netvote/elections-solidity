@@ -16,10 +16,10 @@ before_install:
 - npm install -g npm codecov
 before_script:
 - truffle version
-- ganache-cli -p 8545 -l 200000000 > /dev/null &
-- sleep 3
 - npm run lint
 script:
+- ganache-cli -p 8545 -l 200000000 > /dev/null &
+- sleep 3
 - travis_retry npm run $TEST_SUITE
 notifications:
   slack:
