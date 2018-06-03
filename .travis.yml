@@ -18,8 +18,8 @@ before_script:
 - truffle version
 - npm run lint
 script:
-- ganache-cli -p 8545 -l 200000000 > /dev/null &
-- sleep 3
+- echo $TEST_SUITE && ganache-cli -p 8545 -l 200000000 > /dev/null &
+- echo $TEST_SUITE && sleep 5
 - travis_retry npm run $TEST_SUITE
 notifications:
   slack:
