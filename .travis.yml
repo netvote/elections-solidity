@@ -2,6 +2,9 @@ dist: trusty
 sudo: required
 group: beta
 language: node_js
+env:
+  - TEST_SUITE=test
+  - TEST_SUITE=test-gas
 node_js:
 - '8'
 cache:
@@ -15,11 +18,9 @@ before_script:
 - truffle version
 - ganache-cli -p 8545 -l 200000000 > /dev/null &
 - sleep 3
-script:
 - npm run lint
-- travis_retry npm run coverage
-- codecov
-- travis_retry npm run test-gas
+script:
+- travis_retry npm run $TEST_SUITE
 notifications:
   slack:
     secure: qYGaRtF/orrC780t/sBOZxHyufGa2fadfRvEHiyoRddJvL4IAe2jErFVMLs5owrre32iiFy7a/SNVyKnZQmYduptCUxQPZ5IeQZkJPFcQ+FjnfbY0Q21wy+eEAnJA9Wg5CjiU72nbu+I4+D/Lcy0eh9rEujOLHiybwoDm1pp4YaoHZE3/ajzltlARd/jHhfutYf9qoexlHZzz6PjE1BIczHPJ3O9xHUtNefQG3xQMMlspCZnSnCaseSg3FvvXG2ZxadD6THaPHfiH5tmkxA0Y9Hls5d3kS7KUwiRgJVlZI4cXtpsiCep8niFIUtkdNQINak/MR7AAcvcv0wkY98ujuXspCSevz1cm8UpA1sa8cNfG8P1as64BvmmN9VKGvI5W2FRA+GXrMcVxr4kHDe+374REwZtorj6z81LqXqVQNPeGf+FBXA63lstjCCJ8pRURTgNI/k8gs0pJrPu2XF1D/lfcl51JLUAocF9eSWanAQlVt7K4Xo0GnDdsjUuuGnDCrjRDloKu1BqZ9b6D23zTgoh8cGWQNTyHrdSuvbyZO98xcmLfzUJoSYjoKsmzl2Z3hIjta8P2zbbmhHimofdlQgHdqPK1DSDk+a3RvpdVQwKOaqOwAxc23/Tl7bAKdrb35ykwX0nZh+Qko0LJLQmYNkoUvNkmc94z12RYi7O6xg=
