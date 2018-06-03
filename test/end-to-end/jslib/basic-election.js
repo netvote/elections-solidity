@@ -36,7 +36,7 @@ let initTestContracts = () => {
 
 // for debugging
 let log = (msg) => {
-    console.log(msg);
+    //console.log(msg);
 };
 
 let logObj = (name, obj) => {
