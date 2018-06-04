@@ -14,10 +14,9 @@ env:
 matrix:
   fast_finish: true
 before_install:
-- npm install -g npm codecov
+- npm install -g npm
 before_script:
 - truffle version
-- npm run lint
 script:
 - travis_retry ./test.sh $TEST_SUITE
 notifications:

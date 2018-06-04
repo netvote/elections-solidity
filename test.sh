@@ -5,6 +5,7 @@ set -e
 if [ $1 = "lint" ]; then
     npm run lint
 elif [ $1 = "coverage" ]; then
+    npm install -g codecov
     npm run coverage
     codecov
 elif [ $1 = "gas" ]; then
