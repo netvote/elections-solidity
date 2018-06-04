@@ -7,9 +7,9 @@ sleep 5 # to make sure ganache-cli is up and running before compiling
 echo "PORT 8545 PID: $(lsof -t -i:8545)"
 rm -rf build
 echo "compiling..."
-truffle compile
+darq-truffle compile
 echo "migrating..."
-truffle migrate --reset --network development
+darq-truffle migrate --reset --network development
 echo "testing..."
-truffle test --network development
+darq-truffle test --network development
 kill -9 $(lsof -t -i:8545)
