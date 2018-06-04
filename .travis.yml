@@ -13,12 +13,12 @@ before_install:
 - npm install -g npm codecov
 before_script:
 - truffle version
-- ganache-cli --gasLimit 200000000 2> /dev/null 1> /dev/null &
-- sleep 5
 - npm run lint
 script:
 - travis_retry npm run coverage
 - codecov
+- ganache-cli --gasLimit 200000000 2> /dev/null 1> /dev/null &
+- sleep 5
 - travis_retry npm run test-gas
 notifications:
   slack:
