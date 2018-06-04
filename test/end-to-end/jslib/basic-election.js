@@ -1,6 +1,5 @@
 const protobuf = require("protobufjs");
 const crypto = require('crypto');
-let HDWalletProvider = require("truffle-hdwallet-provider");
 let BasicElection;
 let TokenElection;
 let Vote;
@@ -208,6 +207,7 @@ let releaseKey = async(config) => {
 
 let doTransactions = async(transactions, config) => {
     if(config.provider){
+        let HDWalletProvider = require("truffle-hdwallet-provider");
         let p = (config.hdwallet) ? new HDWalletProvider(process.env.MNEMONIC, config.provider) : new Web3.providers.HttpProvider(provider);
         initContracts(p);
     } else {
