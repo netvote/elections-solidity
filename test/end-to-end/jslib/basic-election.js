@@ -3,6 +3,7 @@ const crypto = require('crypto');
 let BasicElection;
 let TokenElection;
 let Vote;
+const Web3 = require("web3");
 
 const ENCRYPT_ALGORITHM = "aes-256-cbc";
 const ENCRYPT_KEY = "123e4567e89b12d3a456426655440000";
@@ -10,17 +11,16 @@ const ENCRYPT_KEY = "123e4567e89b12d3a456426655440000";
 // used to run these outside of a test context (e.g., truffle exec)
 let initContracts = (provider) => {
     const contract = require("truffle-contract");
-    const Web3 = require("web3");
     BasicElection = contract(require("../../../build/contracts/BasicElection.json"));
     TokenElection = contract(require("../../../build/contracts/TokenElection.json"));
     Vote = contract(require("../../../build/contracts/Vote.json"));
-    let p = new Web3.providers.HttpProvider(provider);
-
+    //hack to override the missing truffle testing web3 for other use cases (scripts on truffle)
+    web3 = new Web3(provider);
     [TokenElection, BasicElection, Vote].forEach(async (c)=> {
-        c.setProvider(p);
+        c.setProvider(provider);
         c.defaults({
             gas: 4712388,
-            gasPrice: 100000000000
+            gasPrice: 1
         })
     });
 };
@@ -207,8 +207,10 @@ let releaseKey = async(config) => {
 
 let doTransactions = async(transactions, config) => {
     if(config.provider){
-        initContracts(config.provider);
-    }else {
+        let HDWalletProvider = require("truffle-hdwallet-provider");
+        let p = (config.hdwallet) ? new HDWalletProvider(process.env.MNEMONIC, config.provider) : new Web3.providers.HttpProvider(provider);
+        initContracts(p);
+    } else {
         initTestContracts();
     }
     for(let tx of transactions) {

@@ -18,4 +18,6 @@ message Vote {
     // weight is only set by the gateway, default 1.0
     // tally will use 1.0 if no weight is set
     string weight = 3;
+    // if true, then tally will ignore this vote upon decryption
+    bool decoy = 4;
 }

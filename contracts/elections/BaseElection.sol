@@ -55,14 +55,13 @@ contract BaseElection is ExternalAuthorizable, KeyHolder, ReentrancyGuard {
 
     modifier validTime(){
         require(now > (startTime - 3 hours));
-        require(now < (endTime + 3 hours));
+        require(endTime == 0 || now < (endTime + 3 hours));
         _;
     }
 
     function activate() public building admin {
-        if (startTime == 0 && endTime == 0) {
+        if (startTime == 0) {
             startTime = now;
-            endTime = now + (4 weeks);
         }
         super.activate();
     }

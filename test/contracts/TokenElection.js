@@ -55,14 +55,14 @@ contract('TokenElection constructor', function (accounts) {
     it("should not allow future balance date", async function () {
         let balanceDate = new Date().getTime()+1000000/1000;
         await assertThrowsAsync(async ()=>{
-            await TokenElection.new(validAddr,owner, true, validAddr, "metadata", validAddr, true, token.address, balanceDate, {from: owner})
+            await TokenElection.new("uid", validAddr,owner, true, validAddr, "metadata", validAddr, true, token.address, balanceDate, {from: owner})
         }, /Exception/);
     });
 
     it("should not allow non-contract token", async function () {
         let balanceDate = new Date().getTime()/1000;
         await assertThrowsAsync(async ()=>{
-            await TokenElection.new(validAddr,owner, true, validAddr, "metadata", validAddr, true, validAddr, balanceDate, {from: owner})
+            await TokenElection.new("uid", validAddr,owner, true, validAddr, "metadata", validAddr, true, validAddr, balanceDate, {from: owner})
         }, /Exception/);
     });
 
