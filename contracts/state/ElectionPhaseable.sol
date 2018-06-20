@@ -17,7 +17,7 @@
 // (c) 2017 netvote contributors.
 //------------------------------------------------------------------------------
 
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.24;
 
 import "./Lockable.sol";
 
@@ -54,11 +54,11 @@ contract ElectionPhaseable is Lockable {
         _;
     }
 
-    function isClosed() public constant returns (bool) {
+    function isClosed() public view returns (bool) {
         return electionPhase == ElectionPhase.Closed;
     }
 
-    function checkConfig() public constant returns (bool) {
+    function checkConfig() public view returns (bool) {
         //override in other contracts if there are verifications pre-activation
         return true;
     }
@@ -66,16 +66,16 @@ contract ElectionPhaseable is Lockable {
     function activate() public building admin {
         require(checkConfig());
         electionPhase = ElectionPhase.Voting;
-        Activated();
+        emit Activated();
     }
 
     function close() public voting admin {
         electionPhase = ElectionPhase.Closed;
-        Closed();
+        emit Closed();
     }
 
     function abort() public admin {
         electionPhase = ElectionPhase.Aborted;
-        Aborted();
+        emit Aborted();
     }
 }

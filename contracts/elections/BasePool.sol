@@ -17,7 +17,7 @@
 // (c) 2017 netvote contributors.
 //------------------------------------------------------------------------------
 
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.24;
 
 import "./BaseElection.sol";
 import "./links/BallotRegistry.sol";
@@ -50,7 +50,7 @@ contract BasePool is ExternalAuthorizable, BallotRegistry {
 
     address public gateway;
 
-    function BasePool(bytes32 hashedUserId, address el, address gw) public {
+    constructor (bytes32 hashedUserId, address el, address gw) public {
         require(el != address(0) && gw != address(0));
         addAuthorized(hashedUserId);
         election = el;
@@ -80,12 +80,12 @@ contract BasePool is ExternalAuthorizable, BallotRegistry {
     }
 
     // returns number of voteIds voted (for iteration of votes)
-    function getVoteCount() public constant returns (uint256) {
+    function getVoteCount() public view returns (uint256) {
         return voteIdSet.size();
     }
 
     // returns number of voteIds voted (for iteration of votes)
-    function getVoteAt(uint256 index) public constant returns (string) {
+    function getVoteAt(uint256 index) public view returns (string) {
         return votes[voteIdSet.getAt(index)];
     }
 
@@ -100,7 +100,7 @@ contract BasePool is ExternalAuthorizable, BallotRegistry {
         voteIdSet.put(voteId);
         votes[voteId] = vote;
         BaseElection(election).deductVote();
-        Vote(voteId);
+        emit Vote(voteId);
     }
 
     // voter can update their vote if election allows it
@@ -113,6 +113,6 @@ contract BasePool is ExternalAuthorizable, BallotRegistry {
         require(voteIdSet.contains(voteId));
         jtiMap[jti] = true;
         votes[voteId] = vote;
-        UpdateVote(voteId);
+        emit UpdateVote(voteId);
     }
 }

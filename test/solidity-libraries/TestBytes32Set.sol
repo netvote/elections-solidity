@@ -1,4 +1,4 @@
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.24;
 
 import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
@@ -9,19 +9,19 @@ contract SetWrapper {
     using Bytes32Set for Bytes32Set.SetData;
     Bytes32Set.SetData set;
 
-    function indexOf(bytes32 a) public constant returns (uint256) {
+    function indexOf(bytes32 a) public view returns (uint256) {
         return set.indexOf(a);
     }
 
-    function getAt(uint256 index) public constant returns (bytes32) {
+    function getAt(uint256 index) public view returns (bytes32) {
         return set.getAt(index);
     }
 
-    function contains(bytes32 a) public constant returns (bool) {
+    function contains(bytes32 a) public view returns (bool) {
         return set.contains(a);
     }
 
-    function size() public constant returns (uint256) {
+    function size() public view returns (uint256) {
         return set.size();
     }
 

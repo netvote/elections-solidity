@@ -17,11 +17,12 @@
 // (c) 2017 netvote contributors.
 //------------------------------------------------------------------------------
 
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.24;
 
-import "zeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
+//TODO: replace with openzepplin's whitelist contract
 /**
  * @title Adminable
  * @dev Allows an owner to specify other admins to delegate actions
@@ -34,7 +35,7 @@ contract Adminable is Ownable {
         _;
     }
 
-    function isAdmin(address addr) public constant returns (bool) {
+    function isAdmin(address addr) public view returns (bool) {
         return addr != address(0) && (addr == owner || adminAddress[addr]);
     }
 

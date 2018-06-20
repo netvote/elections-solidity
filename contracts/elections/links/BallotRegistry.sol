@@ -17,7 +17,7 @@
 // (c) 2017 netvote contributors.
 //------------------------------------------------------------------------------
 
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.24;
 
 import "../../state/ElectionPhaseable.sol";
 import "../../lib/AddressSet.sol";
@@ -34,15 +34,15 @@ contract BallotRegistry is ElectionPhaseable {
 
     AddressSet.SetData ballotSet;
 
-    function getBallotIndex(address b) public constant returns (uint256) {
+    function getBallotIndex(address b) public view returns (uint256) {
         return ballotSet.indexOf(b);
     }
 
-    function getBallot(uint256 index) public constant returns(address) {
+    function getBallot(uint256 index) public view returns(address) {
         return ballotSet.getAt(index);
     }
 
-    function getBallotCount() public constant returns (uint256) {
+    function getBallotCount() public view returns (uint256) {
         return ballotSet.size();
     }
 
@@ -54,7 +54,7 @@ contract BallotRegistry is ElectionPhaseable {
         ballotSet.remove(b);
     }
 
-    function ballotExists(address b) public constant returns (bool) {
+    function ballotExists(address b) public view returns (bool) {
         return ballotSet.contains(b);
     }
 }

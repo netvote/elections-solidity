@@ -17,7 +17,7 @@
 // (c) 2017 netvote contributors.
 //------------------------------------------------------------------------------
 
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.24;
 
 import "../links/BallotRegistry.sol";
 import "../links/PoolRegistry.sol";
@@ -37,7 +37,7 @@ contract TieredElection is BaseElection, BallotRegistry, PoolRegistry {
      * @param acct address of account from whom to deduct votes from
      * @param allowUpdates allow voters to update votes after voting
      */
-    function TieredElection(
+    constructor (
         bytes32 hashedUserId,
         address allowanceAddress,
         address acct,
@@ -47,7 +47,7 @@ contract TieredElection is BaseElection, BallotRegistry, PoolRegistry {
         electionType = "TIERED";
     }
 
-    function checkConfig() public constant returns (bool) {
+    function checkConfig() public view returns (bool) {
         //TODO: implement confirmation that election is configured
         return true;
     }

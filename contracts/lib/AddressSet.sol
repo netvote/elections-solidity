@@ -17,7 +17,7 @@
 // (c) 2017 netvote contributors.
 //------------------------------------------------------------------------------
 
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.24;
 
 
 /**
@@ -33,19 +33,19 @@ library AddressSet {
         address[] entries;
     }
 
-    function indexOf(SetData storage self, address a) public constant returns (uint256) {
+    function indexOf(SetData storage self, address a) public view returns (uint256) {
         return self.entryIndex[a];
     }
 
-    function getAt(SetData storage self, uint256 index) public constant returns (address) {
+    function getAt(SetData storage self, uint256 index) public view returns (address) {
         return self.entries[index];
     }
 
-    function contains(SetData storage self, address a) public constant returns (bool) {
+    function contains(SetData storage self, address a) public view returns (bool) {
         return self.entryExists[a];
     }
 
-    function size(SetData storage self) public constant returns (uint256) {
+    function size(SetData storage self) public view returns (uint256) {
         return self.entries.length;
     }
 
