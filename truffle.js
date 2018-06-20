@@ -1,7 +1,7 @@
 let HDWalletProvider = require("truffle-hdwallet-provider");
 
 const providerWithMnemonic = (mnemonic, rpcEndpoint) => {
-    new HDWalletProvider(mnemonic, rpcEndpoint);
+    return new HDWalletProvider(mnemonic, rpcEndpoint);
 }
 
 const infuraProvider = network => {
