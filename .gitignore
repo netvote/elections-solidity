@@ -1,6 +1,7 @@
 .idea
 .DS_Store
 node_modules
+lib
 build
 .ropsten.json
 coverage.json
