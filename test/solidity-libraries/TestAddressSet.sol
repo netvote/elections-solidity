@@ -1,4 +1,4 @@
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.24;
 
 import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
@@ -9,19 +9,19 @@ contract SetWrapper {
     using AddressSet for AddressSet.SetData;
     AddressSet.SetData set;
 
-    function indexOf(address a) public constant returns (uint256) {
+    function indexOf(address a) public view returns (uint256) {
         return set.indexOf(a);
     }
 
-    function getAt(uint256 index) public constant returns (address) {
+    function getAt(uint256 index) public view returns (address) {
         return set.getAt(index);
     }
 
-    function contains(address a) public constant returns (bool) {
+    function contains(address a) public view returns (bool) {
         return set.contains(a);
     }
 
-    function size() public constant returns (uint256) {
+    function size() public view returns (uint256) {
         return set.size();
     }
 

@@ -17,7 +17,7 @@
 // (c) 2017 netvote contributors.
 //------------------------------------------------------------------------------
 
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.24;
 
 import "../basic/BasicElection.sol";
 
@@ -44,7 +44,7 @@ contract TokenElection is BasicElection {
       * @param erc20Token Address of token whose holders are voting
       * @param balanceTimestamp Timestamp for balance evaluation for weighted voting
       */
-    function TokenElection(
+    constructor (
         bytes32 hashedUserId,
         address allowanceAddress,
         address ownerOfAllowance,
@@ -70,7 +70,7 @@ contract TokenElection is BasicElection {
         }
     }
 
-    function isContract(address addr) internal constant returns (bool) {
+    function isContract(address addr) internal view returns (bool) {
         uint size;
         assembly { size := extcodesize(addr) }
         return size > 0;

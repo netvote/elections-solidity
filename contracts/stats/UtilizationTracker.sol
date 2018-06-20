@@ -17,10 +17,10 @@
 // (c) 2017 netvote contributors.
 //------------------------------------------------------------------------------
 
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.24;
 
 import "../auth/Adminable.sol";
-import "zeppelin-solidity/contracts/math/SafeMath.sol";
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 
 contract UtilizationTracker is Adminable {
@@ -34,7 +34,7 @@ contract UtilizationTracker is Adminable {
         uint256 utilization;
     }
 
-    function UtilizationTracker() public {
+    constructor () public {
         windows.push(UsageWindow({windowStart: now, utilization: 0 }));
     }
 
@@ -42,7 +42,7 @@ contract UtilizationTracker is Adminable {
         granularity = gran;
     }
 
-    function getWindowCountSince(uint256 horizon) public constant returns (uint256) {
+    function getWindowCountSince(uint256 horizon) public view returns (uint256) {
         uint256 count = 0;
         for (uint i = windows.length; i > 0; i--) {
             uint idx = i-1;
@@ -54,7 +54,7 @@ contract UtilizationTracker is Adminable {
         return count;
     }
 
-    function getUtilizationSince(uint256 horizon) public constant returns (uint256) {
+    function getUtilizationSince(uint256 horizon) public view returns (uint256) {
         uint256 util = 0;
         for (uint i = windows.length; i > 0; i--) {
             uint idx = i-1;

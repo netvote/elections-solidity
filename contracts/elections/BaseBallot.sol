@@ -17,7 +17,7 @@
 // (c) 2017 netvote contributors.
 //-------------------------------------------------------------------------------
 
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.24;
 
 import "../state/ElectionPhaseable.sol";
 
@@ -30,7 +30,7 @@ contract BaseBallot is ElectionPhaseable {
 
     string public metadataLocation;
 
-    function BaseBallot(address ownerAddress, string location) public {
+    constructor (address ownerAddress, string location) public {
         //owner = ownerAddress;
         adminAddress[ownerAddress] = true;
         metadataLocation = location;

@@ -19,21 +19,45 @@
 
 pragma solidity ^0.4.24;
 
-import "./VoteAllowance.sol";
-import "../stats/UtilizationTracker.sol";
+import "../state/Lockable.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/MintableToken.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/BurnableToken.sol";
 
 
 /**
- * @title Vote
+ * @title VoteAllowance
  * @dev Token for voting
  */
-contract Vote is VoteAllowance, UtilizationTracker {
+contract VoteAllowance is Lockable, MintableToken, BurnableToken {
     string public name = "VOTE";
     string public symbol = "VOTE";
     uint8 public decimals = 18;
 
+    mapping(address => bool) minters;
+
+    modifier onlyMinter() {
+        require(minters[msg.sender] || msg.sender == owner);
+        _;
+    }
+
+    function addMinter(address m) public admin {
+        minters[m] = true;
+    }
+
+    function removeMinter(address m) public admin {
+        minters[m] = false;
+    }
+
+    function mint(address _to, uint256 _amount) onlyMinter canMint public returns (bool) {
+        totalSupply_ = totalSupply_.add(_amount);
+        balances[_to] = balances[_to].add(_amount);
+        emit Mint(_to, _amount);
+        emit Transfer(address(0), _to, _amount);
+        return true;
+    }
+
     function spendVote() public unlocked {
-        super.spendVote();
-        incrementUtilization();
+        require(balances[msg.sender] >= 1 ether);
+        burn(1 ether);
     }
 }

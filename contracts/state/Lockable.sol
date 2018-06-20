@@ -17,7 +17,7 @@
 // (c) 2017 netvote contributors.
 //------------------------------------------------------------------------------
 
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.24;
 
 import "../auth/Adminable.sol";
 
@@ -43,17 +43,17 @@ contract Lockable is Adminable {
         _;
     }
 
-    function isLocked() public constant returns (bool) {
+    function isLocked() public view returns (bool) {
         return lockState;
     }
 
     function lock() public admin unlocked {
         lockState = true;
-        Locked();
+        emit Locked();
     }
 
     function unlock() public admin locked {
         lockState = false;
-        Unlocked();
+        emit Unlocked();
     }
 }

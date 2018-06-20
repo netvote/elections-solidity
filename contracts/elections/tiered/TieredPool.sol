@@ -17,7 +17,7 @@
 // (c) 2017 netvote contributors.
 //------------------------------------------------------------------------------
 
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.24;
 
 import "../BasePool.sol";
 import "./TieredBallot.sol";
@@ -31,11 +31,11 @@ import "./TieredElection.sol";
  */
 contract TieredPool is BasePool {
 
-    function TieredPool(bytes32 hashedUserId, address el, address gw) BasePool(hashedUserId, el, gw) public {
+    constructor (bytes32 hashedUserId, address el, address gw) BasePool(hashedUserId, el, gw) public {
 
     }
 
-    function checkBallots() public constant returns (bool) {
+    function checkBallots() public view returns (bool) {
         //all ballots include pool, and election includes ballot
         for (uint256 i = 0; i<ballotSet.size(); i++) {
             if (!TieredBallot(ballotSet.getAt(i)).poolExists(this)) {
@@ -49,7 +49,7 @@ contract TieredPool is BasePool {
     }
 
     // returns true if pool can vote on election
-    function checkConfig() public constant returns (bool) {
+    function checkConfig() public view returns (bool) {
         // has ballots
         if ( ballotSet.size() == 0) {
             return false;

@@ -17,7 +17,7 @@
 // (c) 2017 netvote contributors.
 //------------------------------------------------------------------------------
 
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.24;
 
 import "../BaseElection.sol";
 import "../BaseBallot.sol";
@@ -42,7 +42,7 @@ contract BasicElection is BasePool, BaseBallot, BaseElection {
       * @param gatewayAddress The address of the Vote Gateway that will submit votes.
       * @param autoActivate Automatically activate this election to allow votes
       */
-    function BasicElection(
+    constructor (
         bytes32 hashedUserId,
         address allowanceAddress,
         address ownerOfAllowance,

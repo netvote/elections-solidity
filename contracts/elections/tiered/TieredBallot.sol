@@ -17,7 +17,7 @@
 // (c) 2017 netvote contributors.
 //------------------------------------------------------------------------------
 
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.24;
 
 import "../../lib/Bytes32Set.sol";
 import "../links/PoolRegistry.sol";
@@ -54,7 +54,7 @@ contract TieredBallot is BaseBallot, PoolRegistry {
     // pools to the list of voters
     mapping (address => bytes32[]) poolVoters;
 
-    function TieredBallot(address electionAddress, address ownerAddress, string location) BaseBallot(ownerAddress, location) public {
+    constructor (address electionAddress, address ownerAddress, string location) BaseBallot(ownerAddress, location) public {
         require(electionAddress != address(0));
         election = electionAddress;
         groupSet.put(GROUP_ALL);
@@ -65,20 +65,20 @@ contract TieredBallot is BaseBallot, PoolRegistry {
         _;
     }
 
-    function groupPoolCount(bytes32 group) constant public returns (uint256) {
+    function groupPoolCount(bytes32 group) view public returns (uint256) {
         return groupPoolSet[group].size();
     }
 
-    function getGroupPool(bytes32 group, uint256 index) constant public returns (address) {
+    function getGroupPool(bytes32 group, uint256 index) view public returns (address) {
         return groupPoolSet[group].getAt(index);
     }
 
-    function getPoolVoterCount(address pool) constant public returns(uint256) {
+    function getPoolVoterCount(address pool) view public returns(uint256) {
         return poolVoters[pool].length;
     }
 
     // gets voter address by pool and index (for iteration)
-    function getPoolVoter(address pool, uint256 i) constant public returns(bytes32) {
+    function getPoolVoter(address pool, uint256 i) view public returns(bytes32) {
         return poolVoters[pool][i];
     }
 
@@ -88,11 +88,11 @@ contract TieredBallot is BaseBallot, PoolRegistry {
         addPoolToGroup(p, GROUP_ALL);
     }
 
-    function checkElection() public constant returns (bool) {
+    function checkElection() public view returns (bool) {
         return election != address(0) && TieredElection(election).ballotExists(this);
     }
 
-    function checkPools() public constant returns (bool) {
+    function checkPools() public view returns (bool) {
         // there must be at least one pool set
         if (poolSet.size() == 0) {
             return false;
@@ -110,15 +110,15 @@ contract TieredBallot is BaseBallot, PoolRegistry {
         return true;
     }
 
-    function checkConfig() public constant returns (bool) {
+    function checkConfig() public view returns (bool) {
         return checkElection() && checkPools();
     }
 
-    function getGroupCount() constant public returns (uint256) {
+    function getGroupCount() view public returns (uint256) {
         return groupSet.size();
     }
 
-    function getGroup(uint256 index) constant public returns (bytes32) {
+    function getGroup(uint256 index) view public returns (bytes32) {
         return groupSet.getAt(index);
     }
 
@@ -134,11 +134,11 @@ contract TieredBallot is BaseBallot, PoolRegistry {
         groupSet.put(group);
     }
 
-    function getPoolGroupCount(address pool) constant public returns(uint256) {
+    function getPoolGroupCount(address pool) view public returns(uint256) {
         return poolGroupSet[pool].size();
     }
 
-    function getPoolGroupAt(address pool, uint256 index) constant public returns(bytes32) {
+    function getPoolGroupAt(address pool, uint256 index) view public returns(bytes32) {
         return poolGroupSet[pool].getAt(index);
     }
 
@@ -153,6 +153,6 @@ contract TieredBallot is BaseBallot, PoolRegistry {
         require(!voterVoted[voteId]);
         voterVoted[voteId] = true;
         poolVoters[msg.sender].push(voteId);
-        BallotVote(msg.sender, voteId);
+        emit BallotVote(msg.sender, voteId);
     }
 }

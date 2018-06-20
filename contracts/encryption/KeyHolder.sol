@@ -17,7 +17,7 @@
 // (c) 2017 netvote contributors.
 //------------------------------------------------------------------------------
 
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.24;
 
 import "../state/ElectionPhaseable.sol";
 
@@ -36,7 +36,7 @@ contract KeyHolder is ElectionPhaseable {
     string public publicKey;
     string public privateKey;
 
-    function KeyHolder(address revealerAddr) public {
+    constructor (address revealerAddr) public {
         revealer = revealerAddr;
     }
 
@@ -53,6 +53,6 @@ contract KeyHolder is ElectionPhaseable {
     //TODO: instead of from admin, this should be only key writer (specified address)
     function setPrivateKey(string key) public onlyRevealer {
         privateKey = key;
-        KeyReleased();
+        emit KeyReleased();
     }
 }

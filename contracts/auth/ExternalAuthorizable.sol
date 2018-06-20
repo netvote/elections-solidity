@@ -17,7 +17,7 @@
 // (c) 2017 netvote contributors.
 //------------------------------------------------------------------------------
 
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.24;
 
 import "./Adminable.sol";
 
@@ -29,7 +29,7 @@ import "./Adminable.sol";
 contract ExternalAuthorizable is Adminable {
     mapping (bytes32 => bool) authorized;
 
-    function isAuthorized(bytes32 entry) public constant returns (bool) {
+    function isAuthorized(bytes32 entry) public view returns (bool) {
         return authorized[entry];
     }
 

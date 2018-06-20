@@ -8,13 +8,13 @@ contract('GAS: Basic Election GAS Analysis', function (accounts) {
             ballotCount: 1,
             optionsPerBallot: 1,
             writeInCount: 0,
-            voteGasLimit: 187000
+            voteGasLimit: 189000
         },
         {
             ballotCount: 1,
             optionsPerBallot: 5,
             writeInCount: 0,
-            voteGasLimit: 229000
+            voteGasLimit: 231000
         },
         {
             ballotCount: 1,

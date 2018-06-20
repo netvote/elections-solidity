@@ -17,14 +17,14 @@
 // (c) 2017 netvote contributors.
 //------------------------------------------------------------------------------
 
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.24;
 
-import "../token/Vote.sol";
+import "../token/VoteAllowance.sol";
 import "../auth/ExternalAuthorizable.sol";
 import "./links/BallotRegistry.sol";
 import "./links/PoolRegistry.sol";
 import "../encryption/KeyHolder.sol";
-import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
+import "openzeppelin-solidity/contracts/ReentrancyGuard.sol";
 
 
 /**
@@ -33,14 +33,14 @@ import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
  */
 contract BaseElection is ExternalAuthorizable, KeyHolder, ReentrancyGuard {
 
-    Vote public voteToken;
+    VoteAllowance public voteToken;
     address voteOwner;
     bool public allowVoteUpdates;
     string public electionType;
     uint public startTime;
     uint public endTime;
 
-    function BaseElection(
+    constructor (
         bytes32 hashedUserId,
         address tokenContractAddress,
         address acct,
@@ -48,7 +48,7 @@ contract BaseElection is ExternalAuthorizable, KeyHolder, ReentrancyGuard {
         address revealer) KeyHolder(revealer) public
     {
         addAuthorized(hashedUserId);
-        voteToken = Vote(tokenContractAddress);
+        voteToken = VoteAllowance(tokenContractAddress);
         voteOwner = acct;
         allowVoteUpdates = allowUpdates;
     }
