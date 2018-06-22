@@ -51,7 +51,6 @@ contract('Vote', function (accounts) {
         assert.equal(bal.toNumber(), toWei(expected));
     };
 
-
     beforeEach(async () => {
         netvote = accounts[0];
         admin = accounts[1];
@@ -59,6 +58,44 @@ contract('Vote', function (accounts) {
         vote = await Vote.new({from: netvote});
         await vote.setGranularity(1, {from: netvote});
         await vote.mint(netvote, toWei(50), {from: netvote});
+    });
+
+    it("should start with election not on token", async function () {
+        let exists = await vote.elections(election);
+        assert.equal(exists, false, "election should not exist yet");
+    });
+
+    it("should close election", async function () {
+        await vote.addElection(election, {from: netvote});
+        await vote.closeElection({from: election})
+    });
+
+    it("should add and remove election to token", async function () {
+        await vote.addElection(election, {from: netvote});
+        let exists = await vote.elections(election);
+        assert.equal(exists, true, "election should exist");
+        await vote.removeElection(election, {from: netvote});
+        exists = await vote.elections(election);
+        assert.equal(exists, false, "election should not exist");
+    });
+
+    it("should not let non-admins add election", async function () {
+        await vote.addElection(election, {from: netvote});
+        await assertThrowsAsync(async function(){
+            await vote.removeElection(election, {from: admin});
+        }, Error, "should throw Error")
+    });
+
+    it("should not let non-elections close election", async function () {
+        await assertThrowsAsync(async function(){
+            await vote.closeElection(election, {from: admin});
+        }, Error, "should throw Error")
+    });
+
+    it("should not let non-admins remove election", async function () {
+        await assertThrowsAsync(async function(){
+            await vote.addElection(election, {from: admin});
+        }, Error, "should throw Error")
     });
 
     it("should start with only netvote with balance", async function () {
