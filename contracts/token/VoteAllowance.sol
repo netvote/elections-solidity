@@ -29,15 +29,31 @@ import "openzeppelin-solidity/contracts/token/ERC20/BurnableToken.sol";
  * @dev Token for voting
  */
 contract VoteAllowance is Lockable, MintableToken, BurnableToken {
+    event CloseElection(address e);
+
     string public name = "VOTE";
     string public symbol = "VOTE";
     uint8 public decimals = 18;
 
     mapping(address => bool) minters;
+    mapping(address => bool) elections;
 
     modifier onlyMinter() {
         require(minters[msg.sender] || msg.sender == owner);
         _;
+    }
+
+    modifier onlyElection() {
+        require(elections[msg.sender]);
+        _;
+    }
+
+    function addElection(address e) public admin {
+        elections[e] = true;
+    }
+
+    function removeElection(address e) public admin {
+        elections[e] = false;
     }
 
     function addMinter(address m) public admin {
@@ -54,6 +70,10 @@ contract VoteAllowance is Lockable, MintableToken, BurnableToken {
         emit Mint(_to, _amount);
         emit Transfer(address(0), _to, _amount);
         return true;
+    }
+
+    function closeElection() public onlyElection {
+        emit CloseElection(msg.sender);
     }
 
     function spendVote() public unlocked {

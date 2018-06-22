@@ -66,6 +66,11 @@ contract BaseElection is ExternalAuthorizable, KeyHolder, ReentrancyGuard {
         super.activate();
     }
 
+    function close() public voting admin {
+        super.close();
+        voteToken.closeElection();
+    }
+
     function setTimes(uint electionStartTime, uint electionEndTime) public building admin {
         require(electionEndTime > electionStartTime);
         startTime = electionStartTime;

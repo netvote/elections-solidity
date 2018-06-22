@@ -162,6 +162,7 @@ let createElection = async(config) => {
         numVotes = Object.keys(config.voters).length;
     }
     await config.allowanceContract.transfer(config.contract.address, web3.toWei(numVotes+1, 'ether'), {from: config.account.owner})
+    await config.allowanceContract.addElection(config.contract.address, {from: config.account.owner})
     config = await measureGas(config, "Authorize Election for Allowance");
     return config;
 };
