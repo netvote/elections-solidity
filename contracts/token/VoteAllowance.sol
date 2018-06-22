@@ -36,7 +36,7 @@ contract VoteAllowance is Lockable, MintableToken, BurnableToken {
     uint8 public decimals = 18;
 
     mapping(address => bool) minters;
-    mapping(address => bool) elections;
+    mapping(address => bool) public elections;
 
     modifier onlyMinter() {
         require(minters[msg.sender] || msg.sender == owner);
