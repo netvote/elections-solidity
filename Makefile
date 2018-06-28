@@ -1,4 +1,4 @@
-VERSION=18
+VERSION=19
 
 clean:
 	rm -rf ./build
