@@ -35,7 +35,7 @@
   "dependencies": {
     "crypto2": "^0.3.2",
     "ganache-cli": "^6.1.0",
-    "npm": "^6.1.0",
+    "npm": "^5.6.0",
     "openzeppelin-solidity": "1.10.0",
     "protobufjs": "^6.8.3",
     "sleep": "^5.1.1",
