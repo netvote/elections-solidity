@@ -21,6 +21,7 @@ pragma solidity ^0.4.24;
 
 import "../state/Lockable.sol";
 
+
 contract Observances is Lockable {
 
     mapping(bytes32 => ScopedEntries) observances;
