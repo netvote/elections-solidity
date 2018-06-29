@@ -4,9 +4,6 @@ group: beta
 language: node_js
 node_js:
 - '9.4.0'
-cache:
-  directories:
-  - node_modules
 env:
   - TEST_SUITE=lint
   - TEST_SUITE=coverage
@@ -14,7 +11,7 @@ env:
 matrix:
   fast_finish: true
 before_install:
-- npm install -g npm@5.6.0
+- npm install -g npm@6.1.0
 before_script:
 - truffle version
 script:
