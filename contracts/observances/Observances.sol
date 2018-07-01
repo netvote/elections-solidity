@@ -24,7 +24,13 @@ import "../state/Lockable.sol";
 
 contract Observances is Lockable {
 
-    event ObservanceAdded(string scopeId, string submitId, string ref, address source);
+    event ObservanceAdded(
+    string scopeId, 
+    string submitId, 
+    string ref, 
+    address source
+    );
+    
     mapping(string => ScopedEntries) observances;
     
     // per election (or other group)
@@ -50,17 +56,26 @@ contract Observances is Lockable {
         _;
     }
 
-    function addEntry(string scopeId, string submitId, string ref, uint ts) public admin noDuplicates(scopeId, submitId, ref) {
+    function addEntry(
+        string scopeId, 
+        string submitId, 
+        string ref, 
+        uint ts) public admin noDuplicates(scopeId, submitId, ref) 
+        {
         observances[scopeId].submissions[submitId].entries.push(ObservationEntry({
             reference: ref,
             timestamp: ts
         }));
         observances[scopeId].submissions[submitId].referenceExists[ref] = true;
-        if(!observances[scopeId].submitIdExists[submitId]){
+        if (!observances[scopeId].submitIdExists[submitId]) {
             observances[scopeId].submitIdExists[submitId] = true;
             observances[scopeId].submitIds.push(submitId);
         }
-        emit ObservanceAdded(scopeId, submitId, ref, msg.sender);
+        emit ObservanceAdded(
+            scopeId, 
+            submitId, 
+            ref, 
+            msg.sender);
     }
 
     function submitIdLength(string scopeId) public view returns (uint) {
