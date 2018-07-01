@@ -24,9 +24,18 @@ import "../state/Lockable.sol";
 
 contract Observances is Lockable {
 
-    mapping(bytes32 => ScopedEntries) observances;
-
+    event ObservanceAdded(string scopeId, string submitId, string ref, address source);
+    mapping(string => ScopedEntries) observances;
+    
+    // per election (or other group)
     struct ScopedEntries {
+        mapping(string => bool) submitIdExists;
+        mapping(string => SubmissionEntries) submissions;
+        string[] submitIds;
+    }
+
+    // per submission
+    struct SubmissionEntries {
         mapping(string => bool) referenceExists;
         ObservationEntry[] entries;
     }
@@ -36,28 +45,41 @@ contract Observances is Lockable {
         uint timestamp;
     }
 
-    modifier noDuplicates(bytes32 scope, string reference) {
-        require(!observances[scope].referenceExists[reference]);
+    modifier noDuplicates(string scopeId, string submitId, string ref) {
+        require(!observances[scopeId].submissions[submitId].referenceExists[ref]);
         _;
     }
 
-    function addEntry(bytes32 scope, string reference, uint timestamp) public admin noDuplicates(scope, reference) {
-        observances[scope].entries.push(ObservationEntry({
-            reference: reference,
-            timestamp: timestamp
+    function addEntry(string scopeId, string submitId, string ref, uint ts) public admin noDuplicates(scopeId, submitId, ref) {
+        observances[scopeId].submissions[submitId].entries.push(ObservationEntry({
+            reference: ref,
+            timestamp: ts
         }));
-        observances[scope].referenceExists[reference] = true;
+        observances[scopeId].submissions[submitId].referenceExists[ref] = true;
+        if(!observances[scopeId].submitIdExists[submitId]){
+            observances[scopeId].submitIdExists[submitId] = true;
+            observances[scopeId].submitIds.push(submitId);
+        }
+        emit ObservanceAdded(scopeId, submitId, ref, msg.sender);
     }
 
-    function getLength(bytes32 scope) public view returns (uint) {
-        return observances[scope].entries.length;
+    function submitIdLength(string scopeId) public view returns (uint) {
+        return observances[scopeId].submitIds.length;
     }
 
-    function referenceAt(bytes32 scope, uint index) public view returns (string) {
-        return observances[scope].entries[index].reference;
+    function submitIdAt(string scopeId, uint index) public view returns (string) {
+        return observances[scopeId].submitIds[index];
+    }
+
+    function referenceLength(string scopeId, string submitId) public view returns (uint) {
+        return observances[scopeId].submissions[submitId].entries.length;
+    }
+
+    function referenceAt(string scopeId, string submitId, uint index) public view returns (string) {
+        return observances[scopeId].submissions[submitId].entries[index].reference;
     }
     
-    function timestampAt(bytes32 scope, uint index) public view returns (uint) {
-        return observances[scope].entries[index].timestamp;
+    function timestampAt(string scopeId, string submitId, uint index) public view returns (uint) {
+        return observances[scopeId].submissions[submitId].entries[index].timestamp;
     }
 }
