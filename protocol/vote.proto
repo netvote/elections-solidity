@@ -1,6 +1,10 @@
 syntax = "proto3";
 package netvote;
 
+message PointsAllocation {
+    repeated uint32 points = 1;
+}
+
 message VoteChoice {
     oneof choice {
         //choose one from multiple choice selection
@@ -8,7 +12,7 @@ message VoteChoice {
         //write-in value (any string)
         string write_in = 2;
         //allocate points amongst selections (by index)
-        repeated uint32 points = 3; 
+        PointsAllocation selections = 3; 
     }
 }
 
