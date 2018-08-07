@@ -51,8 +51,6 @@ contract BasePool is ExternalAuthorizable, BallotRegistry {
     // prevents duplicate JTIs
     mapping (bytes32 => bool) jtiMap;
 
-    bool storeProofs;
-
     address public gateway;
 
     constructor (bytes32 hashedUserId, address el, address gw) public {
@@ -84,10 +82,6 @@ contract BasePool is ExternalAuthorizable, BallotRegistry {
         _;
     }
 
-    function setStoreProofs(bool store) public onlyGateway building {
-        storeProofs = store;
-    }
-
     // returns number of voteIds voted (for iteration of votes)
     function getVoteCount() public view returns (uint256) {
         return voteIdSet.size();
@@ -108,9 +102,7 @@ contract BasePool is ExternalAuthorizable, BallotRegistry {
         jtiMap[jti] = true;
         voteIdSet.put(voteId);
         votes[voteId] = vote;
-        if (storeProofs) {
-            proofs[voteId] = proof;
-        }
+        proofs[voteId] = proof;
         BaseElection(election).deductVote();
         emit Vote(voteId);
     }
@@ -125,9 +117,7 @@ contract BasePool is ExternalAuthorizable, BallotRegistry {
         require(voteIdSet.contains(voteId), "Voter has not voted and is trying to update");
         jtiMap[jti] = true;
         votes[voteId] = vote;
-        if (storeProofs) {
-            proofs[voteId] = proof;
-        }
+        proofs[voteId] = proof;
         emit UpdateVote(voteId);
     }
 }
