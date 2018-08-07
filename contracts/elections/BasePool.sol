@@ -96,13 +96,11 @@ contract BasePool is ExternalAuthorizable, BallotRegistry {
     function castVote(
         bytes32 voteId,
         string vote,
-        string proof,
         bytes32 jti) public voting onlyGateway notDuplicate(voteId) notDuplicateJti(jti)
     {
         jtiMap[jti] = true;
         voteIdSet.put(voteId);
         votes[voteId] = vote;
-        proofs[voteId] = proof;
         BaseElection(election).deductVote();
         emit Vote(voteId);
     }
@@ -111,13 +109,35 @@ contract BasePool is ExternalAuthorizable, BallotRegistry {
     function updateVote(
         bytes32 voteId,
         string vote,
-        string proof,
         bytes32 jti) public voting onlyGateway updatesAllowed notDuplicateJti(jti)
     {
         require(voteIdSet.contains(voteId), "Voter has not voted and is trying to update");
         jtiMap[jti] = true;
         votes[voteId] = vote;
-        proofs[voteId] = proof;
         emit UpdateVote(voteId);
+    }
+
+    // store vote with proof, separated to optimize gas cost, validation is on underlying function
+    function castVoteWithProof(
+        bytes32 voteId,
+        string vote,
+        bytes32 jti,
+        string proof) public  
+    {
+        require(bytes(proof).length > 0, "Proof paramter is required");
+        proofs[voteId] = proof;
+        castVote(voteId, vote, jti);
+    }
+
+    // update vote with proof, separated to optimize gas cost, validation is on underlying function
+    function updateVoteWithProof(
+        bytes32 voteId,
+        string vote,
+        bytes32 jti,
+        string proof) public  
+    {
+        require(bytes(proof).length > 0, "Proof paramter is required");
+        proofs[voteId] = proof;
+        updateVote(voteId, vote, jti);
     }
 }

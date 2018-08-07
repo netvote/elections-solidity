@@ -180,12 +180,12 @@ let castVotes = async(config) => {
             let voter = config.voters[name];
             log("casting");
             let jti = voter.voteId+"1";
-            await config.contract.castVote(voter.voteId, voter.vote, "proof", jti, {from: config.gateway});
+            await config.contract.castVote(voter.voteId, voter.vote, jti, {from: config.gateway});
             config = await measureGas(config, "Cast Vote");
             if(voter.updateVote){
                 log("updating");
                 jti = jti+"2";
-                await config.contract.updateVote(voter.voteId, voter.updateVote, "proof", jti, {from: config.gateway});
+                await config.contract.updateVote(voter.voteId, voter.updateVote, jti, {from: config.gateway});
                 config = await measureGas(config, "Update Vote");
             }
         }
