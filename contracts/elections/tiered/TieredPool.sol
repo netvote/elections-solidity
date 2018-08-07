@@ -79,23 +79,4 @@ contract TieredPool is BasePool {
         }
     }
 
-    // for each ballot, cast vote for sender, store vote and proof to pool
-    function castVoteWithProof(
-        bytes32 voteId,
-        string vote,
-        bytes32 jti,
-        string proof) public  
-    {
-        super.castVoteWithProof(
-            voteId,
-            vote,
-            jti,
-            proof
-        );
-
-        for (uint256 i = 0; i<ballotSet.size(); i++) {
-            TieredBallot(ballotSet.getAt(i)).castVote(voteId);
-        }
-    }
-
 }
