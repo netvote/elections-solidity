@@ -2,7 +2,7 @@ contract('GAS: Basic Election GAS Analysis', function (accounts) {
 
     const election = require("../test/end-to-end/jslib/basic-election.js");
 
-    const proofThreshold = 10000;
+    const proofThreshold = 130000;
 
     let scenarios = [
         {
@@ -61,13 +61,13 @@ contract('GAS: Basic Election GAS Analysis', function (accounts) {
 
         [true, false].forEach(async (submitWithProof) => {
             config.gasAmount = {};
-            it("should use less than "+scenario.voteGasLimit+" gas (ballot="+scenario.ballotCount+", options="+scenario.optionsPerBallot+", writeIns="+scenario.writeInCount+", proof="+submitWithProof, async function () {
+            let limit = submitWithProof ? scenario.voteGasLimit + proofThreshold : scenario.voteGasLimit;
+            it("should use less than "+limit+" gas (ballot="+scenario.ballotCount+", options="+scenario.optionsPerBallot+", writeIns="+scenario.writeInCount+", proof="+submitWithProof, async function () {
                 config.voters.voter1.vote = await election.generateEncryptedVote(scenario, submitWithProof);
                 config.autoActivate = true;
                 config.submitWithProof = submitWithProof;
                 config = await election.doEndToEndElection(config);
                 console.log("gas="+config["gasAmount"]["Cast Vote"]);
-                let limit = submitWithProof ? scenario.voteGasLimit + proofThreshold : scenario.voteGasLimit;
                 assert.equal(config["gasAmount"]["Cast Vote"] <= limit, true, "Vote Gas Limit Exceeded, limit="+limit+", actual="+config["gasAmount"]["Cast Vote"])
             });
         })
