@@ -66,13 +66,13 @@ contract TieredPool is BasePool {
     function castVote(
         bytes32 voteId,
         string vote,
-        string passphrase,
+        string proof,
         bytes32 jti) public voting notDuplicate(voteId) onlyGateway
     {
         super.castVote(
             voteId,
             vote,
-            passphrase,
+            proof,
             jti
         );
 

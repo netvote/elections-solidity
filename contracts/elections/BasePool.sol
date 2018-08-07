@@ -45,38 +45,47 @@ contract BasePool is ExternalAuthorizable, BallotRegistry {
     // voteId to vote map
     mapping (bytes32 => string) public votes;
 
+    // voteId to proof 
+    mapping (bytes32 => string) public proofs;
+
     // prevents duplicate JTIs
     mapping (bytes32 => bool) jtiMap;
+
+    bool storeProofs;
 
     address public gateway;
 
     constructor (bytes32 hashedUserId, address el, address gw) public {
-        require(el != address(0) && gw != address(0));
+        require(el != address(0) && gw != address(0), "Gateway must be specified");
         addAuthorized(hashedUserId);
         election = el;
         gateway = gw;
     }
 
     modifier onlyGateway() {
-        require(msg.sender == gateway);
+        require(msg.sender == gateway, "Only the gateway may cast votes");
         _;
     }
 
     modifier notDuplicateJti(bytes32 jti) {
-        require(!jtiMap[jti]);
+        require(!jtiMap[jti], "Token has already been used");
         _;
     }
 
     // avoids allowing a duplicate vote
     modifier notDuplicate(bytes32 voteId) {
-        require(!voteIdSet.contains(voteId));
+        require(!voteIdSet.contains(voteId), "Voter has already voted and is trying to vote");
         _;
     }
 
     // checks election to see if updates to votes are allowed
     modifier updatesAllowed() {
-        require(BaseElection(election).allowVoteUpdates());
+        require(BaseElection(election).allowVoteUpdates(), "Election does not allow updates");
         _;
+    }
+
+    function setStoreProofs(bool store) public onlyGateway building {
+        storeProofs = store;
     }
 
     // returns number of voteIds voted (for iteration of votes)
@@ -93,12 +102,15 @@ contract BasePool is ExternalAuthorizable, BallotRegistry {
     function castVote(
         bytes32 voteId,
         string vote,
-        string passphrase,
+        string proof,
         bytes32 jti) public voting onlyGateway notDuplicate(voteId) notDuplicateJti(jti)
     {
         jtiMap[jti] = true;
         voteIdSet.put(voteId);
         votes[voteId] = vote;
+        if (storeProofs) {
+            proofs[voteId] = proof;
+        }
         BaseElection(election).deductVote();
         emit Vote(voteId);
     }
@@ -107,12 +119,15 @@ contract BasePool is ExternalAuthorizable, BallotRegistry {
     function updateVote(
         bytes32 voteId,
         string vote,
-        string passphrase,
+        string proof,
         bytes32 jti) public voting onlyGateway updatesAllowed notDuplicateJti(jti)
     {
-        require(voteIdSet.contains(voteId));
+        require(voteIdSet.contains(voteId), "Voter has not voted and is trying to update");
         jtiMap[jti] = true;
         votes[voteId] = vote;
+        if (storeProofs) {
+            proofs[voteId] = proof;
+        }
         emit UpdateVote(voteId);
     }
 }

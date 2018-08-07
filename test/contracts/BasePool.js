@@ -31,7 +31,7 @@ let assertThrowsAsync = async (fn, regExp) => {
     }
 };
 
-contract('BasePool', function (accounts) {
+contract('BasePool - no proofs', function (accounts) {
     let gateway;
     let admin;
     let pool;
@@ -46,15 +46,49 @@ contract('BasePool', function (accounts) {
     });
 
     it("should accept two different votes", async function () {
-        await pool.castVote("voteId", "vote", "passphrase", "jti", {from: gateway})
-        await pool.castVote("voteId2", "vote2", "passphrase2", "jti2", {from: gateway})
+        await pool.castVote("voteId", "vote", "proof1", "jti", {from: gateway})
+        await pool.castVote("voteId2", "vote2", "proof2", "jti2", {from: gateway})
     });
 
     it("should prevent duplicate jti", async function () {
-        await pool.castVote("voteId", "vote", "passphrase", "jti", {from: gateway})
+        await pool.castVote("voteId", "vote", "proof1", "jti", {from: gateway})
         await assertThrowsAsync(async function() {
-            await pool.castVote("voteId2", "vote2", "passphrase2", "jti", {from: gateway})
+            await pool.castVote("voteId2", "vote2", "proof2", "jti", {from: gateway})
         }, Error, "should throw error");
+    });
+
+    it("should not store proofs if not configured", async function () {
+        await pool.castVote("voteId", "vote", "proof1", "jti", {from: gateway})
+        await pool.castVote("voteId2", "vote2", "proof2", "jti2", {from: gateway})
+        let proof1 = await pool.proofs("voteId")
+        let proof2 = await pool.proofs("voteId2")
+        assert.equal('', proof1)
+        assert.equal('', proof2)
+    });
+
+});
+
+contract('BasePool - with proofs', function (accounts) {
+    let gateway;
+    let admin;
+    let pool;
+
+    beforeEach(async () => {
+        gateway = accounts[0];
+        admin = accounts[1];
+        let election = await MockElection.new({from: admin});
+        pool = await BasePool.new("uid",  election.address, gateway, {from: admin});
+        await pool.setStoreProofs(true);
+        await pool.activate({from: admin});
+    });
+
+    it("should store proofs", async function () {
+        await pool.castVote("voteId", "vote", "proof1", "jti", {from: gateway})
+        await pool.castVote("voteId2", "vote2", "proof2", "jti2", {from: gateway})
+        let proof1 = await pool.proofs("voteId")
+        let proof2 = await pool.proofs("voteId2")
+        assert.equal("proof1", proof1)
+        assert.equal("proof2", proof2)
     });
 
 });
