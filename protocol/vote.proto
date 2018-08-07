@@ -28,4 +28,6 @@ message Vote {
     string weight = 3;
     // if true, then tally will ignore this vote upon decryption
     bool decoy = 4;
+    // set by voter before signing
+    string signature_seed = 5;
 }

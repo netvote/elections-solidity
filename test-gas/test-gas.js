@@ -2,6 +2,7 @@ contract('GAS: Basic Election GAS Analysis', function (accounts) {
 
     const election = require("../test/end-to-end/jslib/basic-election.js");
 
+    const proofThreshold = 10000;
 
     let scenarios = [
         {
@@ -49,7 +50,8 @@ contract('GAS: Basic Election GAS Analysis', function (accounts) {
             autoActivate: false,
             gateway: accounts[3],
             encryptionKey: "123e4567e89b12d3a456426655440000",
-            metadata: "ipfs1",
+            metadata: "QmecMiWvcuB2nsgyL8Wtgp9DMR9gCVqybsb2MfAmcJV1kM",
+            proof: "QmecMiWvcuB2nsgyL8Wtgp9DMR9gCVqybsb2MfAmcJV1kM",
             voters: {
                 voter1: {
                     voteId: "vote-id-1"
@@ -57,17 +59,18 @@ contract('GAS: Basic Election GAS Analysis', function (accounts) {
             }
         };
 
-        [true, false].forEach(async (autoActivate) => {
+        [true, false].forEach(async (submitWithProof) => {
             config.gasAmount = {};
-            it("should use less than "+scenario.voteGasLimit+" gas (ballot="+scenario.ballotCount+", options="+scenario.optionsPerBallot+", writeIns="+scenario.writeInCount+", autoactivate="+autoActivate+")", async function () {
-                config.voters.voter1.vote = await election.generateEncryptedVote(scenario);
-                config.autoActivate = autoActivate;
+            it("should use less than "+scenario.voteGasLimit+" gas (ballot="+scenario.ballotCount+", options="+scenario.optionsPerBallot+", writeIns="+scenario.writeInCount+", proof="+submitWithProof, async function () {
+                config.voters.voter1.vote = await election.generateEncryptedVote(scenario, submitWithProof);
+                config.autoActivate = true;
+                config.submitWithProof = submitWithProof;
                 config = await election.doEndToEndElection(config);
                 console.log("gas="+config["gasAmount"]["Cast Vote"]);
-                assert.equal(config["gasAmount"]["Cast Vote"] <= scenario.voteGasLimit, true, "Vote Gas Limit Exceeded, limit="+scenario.voteGasLimit+", actual="+config["gasAmount"]["Cast Vote"])
+                let limit = submitWithProof ? scenario.voteGasLimit + proofThreshold : scenario.voteGasLimit;
+                assert.equal(config["gasAmount"]["Cast Vote"] <= limit, true, "Vote Gas Limit Exceeded, limit="+limit+", actual="+config["gasAmount"]["Cast Vote"])
             });
-        });
-
+        })
     });
 });
 
