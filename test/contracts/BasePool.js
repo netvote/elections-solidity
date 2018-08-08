@@ -46,15 +46,24 @@ contract('BasePool', function (accounts) {
     });
 
     it("should accept two different votes", async function () {
-        await pool.castVote("voteId", "vote", "passphrase", "jti", {from: gateway})
-        await pool.castVote("voteId2", "vote2", "passphrase2", "jti2", {from: gateway})
+        await pool.castVote("voteId", "vote", "jti", {from: gateway})
+        await pool.castVote("voteId2", "vote2", "jti2", {from: gateway})
     });
 
     it("should prevent duplicate jti", async function () {
-        await pool.castVote("voteId", "vote", "passphrase", "jti", {from: gateway})
+        await pool.castVote("voteId", "vote", "jti", {from: gateway})
         await assertThrowsAsync(async function() {
-            await pool.castVote("voteId2", "vote2", "passphrase2", "jti", {from: gateway})
+            await pool.castVote("voteId2", "vote2", "jti", {from: gateway})
         }, Error, "should throw error");
+    });
+
+    it("should store proofs", async function () {
+        await pool.castVoteWithProof("voteId", "vote", "jti", "proof1", {from: gateway})
+        await pool.castVoteWithProof("voteId2", "vote2", "jti2", "proof2", {from: gateway})
+        let proof1 = await pool.proofs("voteId")
+        let proof2 = await pool.proofs("voteId2")
+        assert.equal("proof1", proof1)
+        assert.equal("proof2", proof2)
     });
 
 });

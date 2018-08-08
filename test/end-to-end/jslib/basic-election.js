@@ -1,9 +1,12 @@
 const protobuf = require("protobufjs");
 const crypto = require('crypto');
+const ursa = require('ursa');
+
 let BasicElection;
 let TokenElection;
 let Vote;
 const Web3 = require("web3");
+const uuid = require('uuid/v4');
 
 const ENCRYPT_ALGORITHM = "aes-256-cbc";
 const ENCRYPT_KEY = "123e4567e89b12d3a456426655440000";
@@ -55,6 +58,17 @@ function encrypt(text) {
     return encrypted;
 }
 
+const signVote = async (voteBase64) => {
+    let keyPair = ursa.generatePrivateKey();
+    let pub = keyPair.toPublicPem('base64');
+    let data = new Buffer(voteBase64);
+    let sig = keyPair.hashAndSign('md5', data);
+    return {
+        signature: sig,
+        publicKey: pub
+    }
+}
+
 const toEncodedVote = async (payload) => {
     let root = await protobuf.load("protocol/vote.proto");
     let Vote = root.lookupType("netvote.Vote");
@@ -81,7 +95,7 @@ const toEncryptedVote = async (json) => {
     return encrypt(encodedVote);
 };
 
-let generateEncryptedVote = async (voteConfig) => {
+let generateEncryptedVote = async (voteConfig, submitWithProof) => {
     let ballotCount = voteConfig.ballotCount;
     let optionsPerBallot = voteConfig.optionsPerBallot;
     let writeInCount = voteConfig.writeInCount;
@@ -108,6 +122,9 @@ let generateEncryptedVote = async (voteConfig) => {
             }
         }
         vote.ballotVotes.push(ballotVote);
+    }
+    if(submitWithProof) {
+        vote.signatureSeed = uuid();
     }
     return await toEncryptedVote(vote);
 };
@@ -178,16 +195,23 @@ let castVotes = async(config) => {
     for (let name in config.voters) {
         if (config.voters.hasOwnProperty(name)) {
             let voter = config.voters[name];
-            log("casting");
             let jti = voter.voteId+"1";
-            await config.contract.castVote(voter.voteId, voter.vote, "passphrase", jti, {from: config.gateway});
+            if(config.submitWithProof){
+                await config.contract.castVoteWithProof(voter.voteId, voter.vote, jti, config.proof, {from: config.gateway});
+            } else { 
+                await config.contract.castVote(voter.voteId, voter.vote, jti, {from: config.gateway});
+            }
+            
             config = await measureGas(config, "Cast Vote");
             if(voter.updateVote){
-                log("updating");
                 jti = jti+"2";
-                await config.contract.updateVote(voter.voteId, voter.updateVote, "passphrase", jti, {from: config.gateway});
+                if(config.submitWithProof){
+                    await config.contract.updateVoteWithProof(voter.voteId, voter.updateVote, jti, config.proof, {from: config.gateway});
+                } else { 
+                    await config.contract.updateVote(voter.voteId, voter.updateVote, jti, {from: config.gateway});
+                }
                 config = await measureGas(config, "Update Vote");
-            }
+            } 
         }
     }
     return config;
@@ -264,5 +288,6 @@ module.exports = {
     createBasicElection,
     createTokenElection,
     setupVoteToken,
-    castVotes
+    castVotes,
+    signVote
 };

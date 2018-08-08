@@ -17,11 +17,12 @@
 // (c) 2017 netvote contributors.
 //------------------------------------------------------------------------------
 
-
+const uuid = require("uuid/v4")
 const election = require("../test/end-to-end/jslib/basic-election.js");
 
 module.exports = async function(callback) {
     let vote = {
+        signatureSeed: uuid(),
         encryptionSeed: 12345,
         ballotVotes: [
             {
@@ -44,6 +45,10 @@ module.exports = async function(callback) {
     };
 
     let encoded = await election.toEncodedVote(vote);
-    console.log(encoded.toString("base64"));
+    let base64Vote = encoded.toString("base64");
+    let sigResult = await election.signVote(base64Vote);
+    console.log("base64 vote:\t"+base64Vote)
+    console.log("publicKey:\t"+sigResult.publicKey);
+    console.log("base64Signature:\t"+sigResult.signature.toString("base64"))
     callback();
 };

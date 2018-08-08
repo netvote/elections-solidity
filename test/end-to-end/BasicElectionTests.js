@@ -269,3 +269,84 @@ contract('Basic Election', function (accounts) {
         assert.equal(votesLeft.toNumber(), 0, "expected 0 votes left");
     });
 });
+
+contract('Basic Election with Proofs', function (accounts) {
+
+    let config;
+    let vote1;
+    let vote2;
+
+    before(async () => {
+
+        let voteConfig = {
+            ballotCount: 1,
+            optionsPerBallot: 5,
+            writeInCount: 0
+        };
+
+        vote1 = await election.generateEncryptedVote(voteConfig);
+        vote2 = await election.generateEncryptedVote(voteConfig);
+
+        config = await election.doEndToEndElection({
+            account: {
+                allowance: 3,
+                owner: accounts[0]
+            },
+            netvote: accounts[1],
+            admin: accounts[2],
+            allowUpdates: true,
+            autoActivate: false,
+            gateway: accounts[3],
+            submitWithProof: true,
+            encryptionKey: "123e4567e89b12d3a456426655440000",
+            metadata: "QmecMiWvcuB2nsgyL8Wtgp9DMR9gCVqybsb2MfAmcJV1kM",
+            proof: "QmecMiWvcuB2nsgyL8Wtgp9DMR9gCVqybsb2MfAmcJV1kM",
+            voters: {
+                voter1: {
+                    voteId: "vote-id-1",
+                    vote: vote2,
+                    updateVote: vote1
+                },
+                voter2: {
+                    voteId: "vote-id-2",
+                    vote: vote2
+                }
+            }
+        });
+    });
+
+    it("should have 2 votes", async function () {
+        let voteCount = await config.contract.getVoteCount();
+        assert.equal(voteCount, 2, "expected 2 votes");
+    });
+
+    it("should have both votes present", async function () {
+        let voteAt0 = await config.contract.getVoteAt(0);
+        let voteAt1 = await config.contract.getVoteAt(1);
+        let votes = [voteAt0, voteAt1];
+        assert.equal(votes.indexOf(vote1) > -1, true, "expected first vote");
+        assert.equal(votes.indexOf(vote2) > -1, true, "expected second vote");
+    });
+
+    it("should be assigned to correct voteId", async function () {
+        let actualVote1 = await config.contract.votes("vote-id-1");
+        let actualVote2 = await config.contract.votes("vote-id-2");
+
+        assert.equal(actualVote1, vote1, "expected first vote");
+        assert.equal(actualVote2, vote2, "expected second vote");
+    });
+
+    it("should have decryption key", async function () {
+        let key = await config.contract.privateKey();
+        assert.equal(key, config.encryptionKey, "key should match");
+    });
+
+    it("should have 1 vote left", async function () {
+        let votesLeft = await config.allowanceContract.balanceOf(config.contract.address);
+        assert.equal(votesLeft.toNumber(), web3.toWei(1, 'ether'), "expected 1 vote left (3 - 2 = 1)");
+        await config.contract.withdrawAllVotes({from: config.account.owner })
+        votesLeft = await config.allowanceContract.balanceOf(config.contract.address);
+        assert.equal(votesLeft.toNumber(), 0, "expected 0 votes left");
+    });
+});
+

@@ -133,6 +133,8 @@ contract('Tiered Election: 1 Pool, 1 Voter, 1 Ballot', function (accounts) {
             admin: accounts[1],
             allowUpdates: false,
             gateway: accounts[8],
+            proof: "QmecMiWvcuB2nsgyL8Wtgp9DMR9gCVqybsb2MfAmcJV1kM",
+            submitWithProof: true,
             ballots: {
                 ballot1: {
                     admin: accounts[2],

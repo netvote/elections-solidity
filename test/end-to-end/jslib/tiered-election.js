@@ -259,13 +259,25 @@ let castVotes = async(config) => {
     for (let name in config.voters) {
         if (config.voters.hasOwnProperty(name)) {
             let voter = config.voters[name];
-            let pool = config.pools[voter.pool].contract;
+            voter.voteId = voter.address+"";
+            log("casting");
             let jti = voter.voteId+"1";
-            await pool.castVote(voter.address+"", voter.vote, "passphrase", jti, {from: config.gateway});
+            let pool = config.pools[voter.pool].contract;
+
+            if(config.submitWithProof){
+                await pool.castVoteWithProof(voter.voteId, voter.vote, jti, config.proof, {from: config.gateway});
+            } else { 
+                await pool.castVote(voter.voteId, voter.vote, jti, {from: config.gateway});
+            }
+            
             config = await measureGas(config, "Cast Vote");
             if(voter.updateVote){
-                jti = voter.voteId+"2";
-                await pool.updateVote(voter.address+"", voter.updateVote, "passphrase", jti, {from: config.gateway});
+                jti = jti+"2";
+                if(config.submitWithProof){
+                    await pool.updateVoteWithProof(voter.voteId, voter.updateVote, jti, config.proof, {from: config.gateway});
+                } else { 
+                    await pool.updateVote(voter.voteId, voter.updateVote, jti, {from: config.gateway});
+                }
                 config = await measureGas(config, "Update Vote");
             }
         }

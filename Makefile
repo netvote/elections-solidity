@@ -1,4 +1,4 @@
-VERSION=21
+VERSION=22
 
 clean:
 	rm -rf ./build

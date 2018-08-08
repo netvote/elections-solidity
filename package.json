@@ -42,6 +42,8 @@
     "solium": "^1.1.7",
     "truffle-contract": "^3.0.5",
     "truffle-hdwallet-provider": "0.0.5",
+    "ursa": "^0.9.4",
+    "uuid": "^3.3.2",
     "web3-utils": "^1.0.0-beta.34"
   },
   "devDependencies": {
