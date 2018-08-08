@@ -1,18 +1,38 @@
 syntax = "proto3";
 package netvote;
 
+// index in this array represents index of option in question on ballot
+// value of each entry represents number of points each option is given
+// points: [0,0,3,5] means 1st gets 0, 2nd gets 0, 3rd gets 3, 4th gets 5
+// ranked: [3,2,4,1] means 1st is 3rd choice, 2nd is 2nd choice, 3rd is 4th choice, 4th is 1st choice 
 message PointsAllocation {
     repeated uint32 points = 1;
 }
 
+// index in this array is not meaningful
+// value of each entry represents the index of chosen option in question on ballot
+// [0,5] means choose the 1st choice and 6th choice 
+message IndexSelection {
+    repeated uint32 indexes = 1;
+}
+
 message VoteChoice {
+
+    enum Abstain {
+        true
+    }
+
     oneof choice {
-        //choose one from multiple choice selection
+        // choose one index from choices (default)
         uint32 selection = 1;
-        //write-in value (any string)
+        // write-in value (any string, could be anything)
         string write_in = 2;
-        //allocate points amongst selections (by index)
-        PointsAllocation selections = 3; 
+        // allocate points amongst selections (points or ranked choice)
+        PointsAllocation points_allocations = 3; 
+        // choose which indexes to allocate 1 vote to (multiple choice)
+        IndexSelection index_selections = 4;
+        // ignore this choice
+        Abstain abstain = 5;
     }
 }
 
@@ -21,6 +41,7 @@ message BallotVote {
 }
 
 message Vote {
+    // set by encryptor before encrypting (uint64 for footprint/cost)
     uint64 encryption_seed = 1;
     repeated BallotVote ballot_votes = 2;
     // weight is only set by the gateway, default 1.0
