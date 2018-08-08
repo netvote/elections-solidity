@@ -19,7 +19,7 @@ message IndexSelection {
 message VoteChoice {
 
     enum Abstain {
-        true
+        true = 1;
     }
 
     oneof choice {
