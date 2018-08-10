@@ -48,6 +48,10 @@ contract('BasePool', function (accounts) {
     it("should accept two different votes", async function () {
         await pool.castVote("voteId", "vote", "jti", {from: gateway})
         await pool.castVote("voteId2", "vote2", "jti2", {from: gateway})
+        let voteId1 = await pool.getVoteIdAt(0)
+        let voteId2 = await pool.getVoteIdAt(1);
+        assert.equal(web3.toAscii(voteId1).replace(/\0/g,""), "voteId")
+        assert.equal(web3.toAscii(voteId2).replace(/\0/g,""), "voteId2")
     });
 
     it("should prevent duplicate jti", async function () {
@@ -62,8 +66,12 @@ contract('BasePool', function (accounts) {
         await pool.castVoteWithProof("voteId2", "vote2", "jti2", "proof2", {from: gateway})
         let proof1 = await pool.proofs("voteId")
         let proof2 = await pool.proofs("voteId2")
+        let proofIndex0 = await pool.getProofAt(0)
+        let proofIndex1 = await pool.getProofAt(1)
         assert.equal("proof1", proof1)
         assert.equal("proof2", proof2)
+        assert.equal("proof1", proofIndex0)
+        assert.equal("proof2", proofIndex1)
     });
 
 });
