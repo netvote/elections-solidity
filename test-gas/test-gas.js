@@ -51,10 +51,10 @@ contract('GAS: Basic Election GAS Analysis', function (accounts) {
             gateway: accounts[3],
             encryptionKey: "123e4567e89b12d3a456426655440000",
             metadata: "QmecMiWvcuB2nsgyL8Wtgp9DMR9gCVqybsb2MfAmcJV1kM",
-            proof: "QmecMiWvcuB2nsgyL8Wtgp9DMR9gCVqybsb2MfAmcJV1kM",
             voters: {
                 voter1: {
-                    voteId: "vote-id-1"
+                    voteId: "vote-id-1",
+                    proof: "QmecMiWvcuB2nsgyL8Wtgp9DMR9gCVqybsb2MfAmcJV1kM"
                 }
             }
         };

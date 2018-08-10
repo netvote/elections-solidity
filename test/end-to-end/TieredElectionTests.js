@@ -133,12 +133,12 @@ contract('Tiered Election: 1 Pool, 1 Voter, 1 Ballot', function (accounts) {
             admin: accounts[1],
             allowUpdates: false,
             gateway: accounts[8],
-            proof: "QmecMiWvcuB2nsgyL8Wtgp9DMR9gCVqybsb2MfAmcJV1kM",
             submitWithProof: true,
             ballots: {
                 ballot1: {
                     admin: accounts[2],
                     metadata: "ipfs1",
+                    proof: "QmecMiWvcuB2nsgyL8Wtgp9DMR9gCVqybsb2MfAmcJV1kM",
                     groups: ["US"]
                 }
             },
@@ -146,6 +146,7 @@ contract('Tiered Election: 1 Pool, 1 Voter, 1 Ballot', function (accounts) {
                 pool1: {
                     admin: accounts[3],
                     groups: ["US"],
+                    proof: "QmecMiWvcuB2nsgyL8Wtgp9DMR9gCVqybsb2MfAmcJV1kM",
                     ballots: ["ballot1"]
                 }
             },
@@ -153,6 +154,7 @@ contract('Tiered Election: 1 Pool, 1 Voter, 1 Ballot', function (accounts) {
                 voter1: {
                     pool: "pool1",
                     address: accounts[6],
+                    proof: "QmecMiWvcuB2nsgyL8Wtgp9DMR9gCVqybsb2MfAmcJV1kM",
                     vote: "encrypted-vote-1"
                 }
             }

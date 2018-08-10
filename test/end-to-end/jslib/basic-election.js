@@ -197,7 +197,7 @@ let castVotes = async(config) => {
             let voter = config.voters[name];
             let jti = voter.voteId+"1";
             if(config.submitWithProof){
-                await config.contract.castVoteWithProof(voter.voteId, voter.vote, jti, config.proof, {from: config.gateway});
+                await config.contract.castVoteWithProof(voter.voteId, voter.vote, jti, voter.proof, {from: config.gateway});
             } else { 
                 await config.contract.castVote(voter.voteId, voter.vote, jti, {from: config.gateway});
             }
@@ -206,7 +206,7 @@ let castVotes = async(config) => {
             if(voter.updateVote){
                 jti = jti+"2";
                 if(config.submitWithProof){
-                    await config.contract.updateVoteWithProof(voter.voteId, voter.updateVote, jti, config.proof, {from: config.gateway});
+                    await config.contract.updateVoteWithProof(voter.voteId, voter.updateVote, jti, voter.updateProof, {from: config.gateway});
                 } else { 
                     await config.contract.updateVote(voter.voteId, voter.updateVote, jti, {from: config.gateway});
                 }
