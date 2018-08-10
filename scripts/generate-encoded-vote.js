@@ -49,6 +49,6 @@ module.exports = async function(callback) {
     let sigResult = await election.signVote(base64Vote);
     console.log("base64 vote:\t"+base64Vote)
     console.log("publicKey:\t"+sigResult.publicKey);
-    console.log("base64Signature:\t"+sigResult.signature.toString("base64"))
+    console.log("base64Signature:\t"+sigResult.signature);
     callback();
 };

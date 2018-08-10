@@ -62,7 +62,7 @@ const signVote = async (voteBase64) => {
     let keyPair = ursa.generatePrivateKey();
     let pub = keyPair.toPublicPem('base64');
     let data = new Buffer(voteBase64);
-    let sig = keyPair.hashAndSign('md5', data);
+    let sig = keyPair.hashAndSign('md5', data).toString("base64");
     return {
         signature: sig,
         publicKey: pub
