@@ -300,16 +300,18 @@ contract('Basic Election with Proofs', function (accounts) {
             submitWithProof: true,
             encryptionKey: "123e4567e89b12d3a456426655440000",
             metadata: "QmecMiWvcuB2nsgyL8Wtgp9DMR9gCVqybsb2MfAmcJV1kM",
-            proof: "QmecMiWvcuB2nsgyL8Wtgp9DMR9gCVqybsb2MfAmcJV1kM",
             voters: {
                 voter1: {
                     voteId: "vote-id-1",
                     vote: vote2,
-                    updateVote: vote1
+                    proof: "QmecMiWvcuB2nsgyL8Wtgp9DMR9gCVqybsb2MfAmcJV1kM",
+                    updateVote: vote1,
+                    updateProof: "QmecMiWvcuB2nsgyL8Wtgp9DMR9gCVqybsb2MfAmcJV1kM"
                 },
                 voter2: {
                     voteId: "vote-id-2",
-                    vote: vote2
+                    vote: vote2,
+                    proof: "QmecMiWvcuB2nsgyL8Wtgp9DMR9gCVqybsb2MfAmcJV1kM"
                 }
             }
         });
