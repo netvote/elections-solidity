@@ -87,9 +87,19 @@ contract BasePool is ExternalAuthorizable, BallotRegistry {
         return voteIdSet.size();
     }
 
-    // returns number of voteIds voted (for iteration of votes)
+    // returns vote at index
     function getVoteAt(uint256 index) public view returns (string) {
         return votes[voteIdSet.getAt(index)];
+    }
+
+    // returns voteId at index (for iteration of votes and proof lookup)
+    function getVoteIdAt(uint256 index) public view returns (bytes32) {
+        return voteIdSet.getAt(index);
+    }
+
+    // returns proof at index (for iteration of votes and proof lookup)
+    function getProofAt(uint256 index) public view returns (string) {
+        return proofs[voteIdSet.getAt(index)];
     }
 
     // store vote
