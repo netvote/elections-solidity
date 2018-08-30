@@ -5,7 +5,8 @@ const providerWithMnemonic = (mnemonic, rpcEndpoint) => {
 }
 
 const infuraProvider = network => {
-    return providerWithMnemonic(process.env.MNEMONIC, `https://${network}.infura.io/${process.env.INFURA_API_KEY}`);
+    let mnemonic = (network === "mainnet") ? process.env.MAIN_MNEMONIC : process.env.MNEMONIC;
+    return providerWithMnemonic(mnemonic, `https://${network}.infura.io/v3/${process.env.INFURA_API_KEY}`);
 };
 
 const netvoteProvider = (url) => {
@@ -32,15 +33,22 @@ module.exports = {
             network_id: "*" // Match any network id
         },
         netvote: {
-            provider: () => netvoteProvider("http://localhost:8545"),
+            provider: () => netvoteProvider("https://eth.netvote.io"),
             network_id: "1984",
-	        gas: 4612388
+            gas: 4612388
         },
         ropsten: {
             provider: () => infuraProvider('ropsten'),
             network_id: 3,
-            gas: 4612388
+            gas: 4612388,
+            gasPrice: 99000000000
         },
+        mainnet: {
+            provider: () => infuraProvider('mainnet'),
+            network_id: 1,
+            gas: 4612388,
+            gasPrice: 10000000000
+        }
     },
     solc: {
         optimizer: {
