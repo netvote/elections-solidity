@@ -1,4 +1,4 @@
-VERSION=22
+VERSION=23
 
 clean:
 	rm -rf ./build
@@ -12,9 +12,15 @@ migrate_ropsten:
 migrate_netvote:
 	truffle migrate --network netvote
 
-migrate: migrate_ropsten migrate_netvote
+migrate_mainnet:
+	truffle migrate --network mainnet
+
+migrate: migrate_ropsten migrate_netvote 
+
+download:
+	aws s3 sync s3://netvote-election-contracts/$(VERSION)/ ./build/contracts/ 
 
 upload:
 	aws s3 sync ./build/contracts/ s3://netvote-election-contracts/$(VERSION)/ --acl public-read
 
-publish: clean build migrate upload
+publish: build migrate upload
