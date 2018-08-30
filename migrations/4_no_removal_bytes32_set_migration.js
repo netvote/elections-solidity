@@ -7,7 +7,21 @@ let BallotRegistry = artifacts.require("./elections/links/BallotRegistry.sol");
 let PoolRegistry = artifacts.require("./elections/links/PoolRegistry.sol");
 let BasicElection = artifacts.require("./elections/basic/BasicElection.sol");
 
-module.exports = function(deployer) {
-    deployer.deploy(NoRemovalBytes32Set);
-    deployer.link(NoRemovalBytes32Set, [TieredElection, TieredBallot, TieredPool, BasePool, BasicElection, BallotRegistry, PoolRegistry]);
+const snooze = (ms) => { 
+    console.log("sleeping "+ms)
+    return new Promise(resolve => setTimeout(resolve, ms)); 
+}
+
+module.exports = async(deployer, network)=> {
+    let sleepMs = (network === "mainnet") ? 60000 : 1;
+
+    deployer.then(async()=>{
+        await snooze(sleepMs);
+        await deployer.deploy(NoRemovalBytes32Set)
+        await snooze(sleepMs);
+        await deployer.link(NoRemovalBytes32Set, [TieredElection, TieredBallot, TieredPool, BasePool, BasicElection, BallotRegistry, PoolRegistry]);
+        await snooze(sleepMs);
+    }).catch((e)=>{
+        throw e;
+    })
 };
