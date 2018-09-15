@@ -34,15 +34,41 @@ let assertThrowsAsync = async (fn, regExp) => {
 contract('BasePool', function (accounts) {
     let gateway;
     let admin;
+    let anybody;
     let pool;
 
     beforeEach(async () => {
         gateway = accounts[0];
         admin = accounts[1];
+        anybody = accounts[2];
         let election = await MockElection.new({from: admin});
         pool = await BasePool.new("uid",  election.address, gateway, {from: admin});
 
         await pool.activate({from: admin});
+    });
+
+    it("should insert auth Ids", async function () {
+        await pool.addAuthId("test1", {from: admin})
+        await pool.addAuthId("test2", {from: admin})
+        let count = await pool.getAuthIdCount();
+        let authId1 = await pool.getAuthIdAt(0)
+        let authId2 = await pool.getAuthIdAt(1);
+        assert.equal(count, 2, "should have 2 authIds")
+        assert.equal(web3.toAscii(authId1).replace(/\0/g,""), "test1")
+        assert.equal(web3.toAscii(authId2).replace(/\0/g,""), "test2")
+    });
+
+    it("should not let just anybody insert auth Ids", async function () {
+        await assertThrowsAsync(async function() {
+            await pool.addAuthId("test1", {from: anybody})
+        }, Error, "should throw error");
+    });
+
+    it("should only allow voting state to insert auth Ids", async function () {
+        await pool.close({from: admin});
+        await assertThrowsAsync(async function() {
+            await pool.addAuthId("test1", {from: admin})
+        }, Error, "should throw error");
     });
 
     it("should accept two different votes", async function () {
