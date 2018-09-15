@@ -34,6 +34,7 @@ contract BasePool is ExternalAuthorizable, BallotRegistry {
     using NoRemovalBytes32Set for NoRemovalBytes32Set.SetData;
 
     NoRemovalBytes32Set.SetData voteIdSet;
+    NoRemovalBytes32Set.SetData authIdSet;
 
     address public election;
     string public createdBy;
@@ -150,4 +151,17 @@ contract BasePool is ExternalAuthorizable, BallotRegistry {
         proofs[voteId] = proof;
         updateVote(voteId, vote, jti);
     }
+
+    function addAuthId(bytes32 authId) public voting admin {
+        authIdSet.put(authId);
+    }
+
+    function getAuthIdCount() public view returns (uint256) {
+        return authIdSet.size();
+    }
+
+    function getAuthIdAt(uint256 index) public view returns (bytes32) {
+        return authIdSet.getAt(index);
+    }
+
 }
