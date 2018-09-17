@@ -156,12 +156,18 @@ contract BasePool is ExternalAuthorizable, BallotRegistry {
         authIdSet.put(authId);
     }
 
-    function getAuthIdCount() public view returns (uint256) {
-        return authIdSet.size();
+    function addAuthIds(bytes32[] _authIds) public admin {
+        for (uint256 i = 0; i <_authIds.length; i++) {
+            authIdSet.put(_authIds[i]);
+        }
     }
 
     function getAuthIdAt(uint256 index) public view returns (bytes32) {
         return authIdSet.getAt(index);
+    }
+
+    function getAuthIdCount() public view returns (uint) {
+        return authIdSet.size();
     }
 
 }
