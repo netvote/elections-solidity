@@ -64,13 +64,6 @@ contract('BasePool', function (accounts) {
         }, Error, "should throw error");
     });
 
-    it("should only allow voting state to insert auth Ids", async function () {
-        await pool.close({from: admin});
-        await assertThrowsAsync(async function() {
-            await pool.addAuthId("test1", {from: admin})
-        }, Error, "should throw error");
-    });
-
     it("should accept two different votes", async function () {
         await pool.castVote("voteId", "vote", "jti", {from: gateway})
         await pool.castVote("voteId2", "vote2", "jti2", {from: gateway})
