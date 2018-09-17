@@ -152,7 +152,7 @@ contract BasePool is ExternalAuthorizable, BallotRegistry {
         updateVote(voteId, vote, jti);
     }
 
-    function addAuthId(bytes32 authId) public voting admin {
+    function addAuthId(bytes32 authId) public admin {
         authIdSet.put(authId);
     }
 
