@@ -1,4 +1,6 @@
-VERSION=25
+VERSION=26
+
+.PHONY: build
 
 clean:
 	rm -rf ./build

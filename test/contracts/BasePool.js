@@ -58,6 +58,21 @@ contract('BasePool', function (accounts) {
         assert.equal(web3.toAscii(authId2).replace(/\0/g,""), "test2")
     });
 
+    it("should batch insert auth Ids", async function () {
+        let authIds = []
+        let authIdNum = 100;
+        for(let i=0; i<authIdNum; i++){
+            authIds.push("test"+i);
+        }
+        await pool.addAuthIds(authIds, {from: admin});
+        let count = await pool.getAuthIdCount();
+        let authId1 = await pool.getAuthIdAt(0)
+        let authId2 = await pool.getAuthIdAt(1);
+        assert.equal(count, authIdNum, `should have ${authIdNum} authIds`)
+        assert.equal(web3.toAscii(authId1).replace(/\0/g,""), "test0")
+        assert.equal(web3.toAscii(authId2).replace(/\0/g,""), "test1")
+    });
+
     it("should not let just anybody insert auth Ids", async function () {
         await assertThrowsAsync(async function() {
             await pool.addAuthId("test1", {from: anybody})
